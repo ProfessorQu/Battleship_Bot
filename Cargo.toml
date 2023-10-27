@@ -1,0 +1,13 @@
+[package]
+name = "battleship_bot"
+version = "0.1.0"
+edition = "2021"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+raylib = "3.7.0"
