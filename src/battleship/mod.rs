@@ -1,8 +1,10 @@
 mod game;
 pub use game::Game;
 
-mod boatmap;
-
-mod hitmap;
-
 mod constants;
+
+mod player;
+pub use player::Player;
+
+mod players;
+pub use players::random::Random;

@@ -1,23 +1,29 @@
 #![allow(dead_code)]
 
-use raylib::prelude::*;
-
 mod battleship;
 use battleship::Game;
+use battleship::Player;
+use battleship::Random;
 
 fn main() {
-    let (mut rl, thread) = init()
-        .size(640, 640)
-        .title("Hello World")
-        .build();
+    let game = Game::new(
+        Random::place_boats(),
+        Random::place_boats()
+    );
 
-    let game = Game::new();
+    println!("--------------------------------");
+    for row in Random::place_boats() {
+        print!("|");
+        for element in row {
+            if element != 0 {
+                print!(" {element:?} ")
+            }
+            else {
+                print!("   ")
+            }
+        }
 
-    while !rl.window_should_close() {
-        let mut d = rl.begin_drawing(&thread);
-
-        d.clear_background(Color::WHITE);
-        // game.draw(&mut d);
-
+        println!("|");
     }
+    println!("--------------------------------");
 }
