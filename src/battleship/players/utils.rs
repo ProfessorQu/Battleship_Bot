@@ -1,4 +1,4 @@
-use crate::battleship::constants::{NUM_ROWS, NUM_COLS, LENGTHS};
+use crate::battleship::{constants::{NUM_ROWS, NUM_COLS, LENGTHS}, game::Shot};
 
 pub fn valid_pos(
     boats: &[[usize; NUM_ROWS]; NUM_COLS], boat: usize,
@@ -25,4 +25,8 @@ pub fn valid_pos(
     }
 
     valid_position
+}
+
+pub fn valid_shot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], x: usize, y: usize) -> bool  {
+    shots[x][y].is_none()
 }
