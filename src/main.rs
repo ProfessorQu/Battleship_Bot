@@ -16,12 +16,7 @@ fn main() {
         Random::shoot
     );
 
-    let mut won = None;
-
-    while won.is_none() {
-        game.step();
-        won = game.won();
-    }
+    let won = game.play();
 
     println!("{:?}", won);
 

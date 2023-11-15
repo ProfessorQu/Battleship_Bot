@@ -102,6 +102,17 @@ impl Game {
         self.current_player = self.current_player.opponent();
     }
 
+    pub fn play(&mut self) -> PlayerType {
+        let mut won = None;
+
+        while won.is_none() {
+            self.step();
+            won = self.won();
+        }
+
+        won.expect("No player won")
+    }
+
     pub fn shoot(&mut self, player: PlayerType, pos: (usize, usize)) {
         let (x, y) = pos;
         let boat = self.get_boats(player.opponent())[x][y];
