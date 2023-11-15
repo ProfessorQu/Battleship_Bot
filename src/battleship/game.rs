@@ -32,22 +32,37 @@ impl PlayerType {
     }
 }
 
+type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize);
+
 pub struct Game {
+    current_player: PlayerType,
+
     player1_boats: [[usize; NUM_ROWS]; NUM_COLS],
     player2_boats: [[usize; NUM_ROWS]; NUM_COLS],
 
     player1_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
     player2_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
+
+    player1_shoot_fn: ShootFn,
+    player2_shoot_fn: ShootFn,
 }
 
 impl Game {
-    pub fn new(player1_boats: [[usize; NUM_ROWS]; NUM_COLS], player2_boats: [[usize; NUM_ROWS]; NUM_COLS]) -> Self {
+    pub fn new(
+        player1_boats: [[usize; NUM_ROWS]; NUM_COLS], player2_boats: [[usize; NUM_ROWS]; NUM_COLS],
+        player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn
+    ) -> Self {
         Self {
+            current_player: PlayerType::P1,
+
             player1_boats,
             player2_boats,
 
             player1_shots: [[None; NUM_ROWS]; NUM_COLS],
             player2_shots: [[None; NUM_ROWS]; NUM_COLS],
+
+            player1_shoot_fn,
+            player2_shoot_fn
         }
     }
 
@@ -55,6 +70,13 @@ impl Game {
         match player {
             PlayerType::P1 => self.player1_boats,
             PlayerType::P2 => self.player2_boats,
+        }
+    }
+
+    fn get_shoot_fn(&self, player: PlayerType) -> ShootFn {
+        match player {
+            PlayerType::P1 => self.player1_shoot_fn,
+            PlayerType::P2 => self.player2_shoot_fn,
         }
     }
 
@@ -70,6 +92,14 @@ impl Game {
             PlayerType::P1 => &mut self.player1_shots,
             PlayerType::P2 => &mut self.player2_shots,
         }
+    }
+
+    pub fn step(&mut self) {
+        let pos = (self.get_shoot_fn(self.current_player))(self.get_shots(self.current_player));
+
+        self.shoot(self.current_player, pos);
+
+        self.current_player = self.current_player.opponent();
     }
 
     pub fn shoot(&mut self, player: PlayerType, pos: (usize, usize)) {
@@ -134,7 +164,10 @@ impl Game {
             .flatten()
             .filter(|item| matches!(item, Shot::Hit(_)))
             .cloned().collect();
-        let player2_total_shots: Vec<Option<Shot>> = self.player2_shots.iter().flat_map(|array| array.iter()).cloned().collect();
+        let player2_total_shots: Vec<Option<Shot>> = self.player2_shots
+            .iter()
+            .flat_map(|array| array.iter())
+            .cloned().collect();
         let player2_hits: Vec<Shot> = player2_total_shots
             .iter()
             .flatten()
@@ -143,8 +176,7 @@ impl Game {
 
         if player1_total_shots.len() < MIN_SHOTS {
             None
-        }
-        else if player1_hits.len() == MIN_SHOTS {
+        } else if player1_hits.len() == MIN_SHOTS {
             Some(PlayerType::P1)
         } else if player2_hits.len() == MIN_SHOTS {
             Some(PlayerType::P2)
