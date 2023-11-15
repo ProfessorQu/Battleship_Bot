@@ -1,5 +1,6 @@
 mod game;
 pub use game::Game;
+pub use game::PlayerType;
 
 pub mod constants;
 
