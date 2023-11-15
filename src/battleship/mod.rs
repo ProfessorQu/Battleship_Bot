@@ -1,7 +1,7 @@
 mod game;
 pub use game::Game;
 
-mod constants;
+pub mod constants;
 
 mod player;
 pub use player::Player;

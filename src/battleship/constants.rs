@@ -1,5 +1,5 @@
-pub const ROWS: usize = 10;
-pub const COLUMNS: usize = 10;
+pub const NUM_ROWS: usize = 10;
+pub const NUM_COLS: usize = 15;
 
 pub const DESTROYER: usize = 1;
 pub const SUBMARINE: usize = 2;
