@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
-use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat, EMPTY}, players::Pos};
+use crate::battleship::players::utils::valid_shot;
+
+use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat, EMPTY}, players::utils::Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -103,6 +105,9 @@ impl Battleship {
 
     fn step(&mut self) {
         let pos = (self.get_shoot_fn(self.current_player))(self.get_shots(self.current_player));
+
+        debug_assert!(valid_shot(self.get_shots(self.current_player), pos));
+
         self.shoot(self.current_player, pos);
         self.current_player = self.current_player.opponent();
     }
@@ -117,7 +122,7 @@ impl Battleship {
         self.current_player = Player::P1;
     }
 
-    fn play(&mut self) -> Player {
+    fn play_game(&mut self) -> Player {
         self.reset();
 
         let mut winner = None;
@@ -135,7 +140,7 @@ impl Battleship {
         let mut p2_won = 0;
 
         for _ in 0..num_games {
-            let winner = self.play();
+            let winner = self.play_game();
 
             if matches!(winner, Player::P1) {
                 p1_won += 1;
@@ -234,12 +239,6 @@ impl Battleship {
 
         while winner.is_none() {
             self.step();
-
-            if matches!(self.current_player, Player::P2) {
-            //     println!("TURN =========================================================================");
-            //     self.show_boats(Player::P1);
-                self.show_shots(Player::P2);
-            }
 
             winner = self.winner();
         }

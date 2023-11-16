@@ -13,4 +13,3 @@ pub const CARRIER: Boat = 5;
 pub const BOATS: [Boat; 5] = [DESTROYER, SUBMARINE, CRUISER, BATTLESHIP, CARRIER];
 
 pub const MIN_SHOTS: usize = 2 + 3 + 3 + 4 + 5;
-

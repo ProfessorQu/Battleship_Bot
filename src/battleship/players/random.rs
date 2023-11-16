@@ -2,7 +2,7 @@ use rand::{random, Rng};
 
 use crate::battleship::{constants::{BOATS, NUM_COLS, NUM_ROWS, Boat, EMPTY}, game::Shot};
 
-use super::{utils::{valid_pos, valid_shot, length, random_focus}, Pos};
+use super::utils::{valid_boat_pos, valid_shot, length, random_focus, Pos};
 
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
@@ -34,7 +34,7 @@ fn random_boat_pos(boat: Boat) -> (bool, Pos) {
 fn random_valid_boat_pos(boats: &[[Boat; NUM_ROWS]; NUM_COLS], boat: Boat) -> (bool, Pos) {
     let (mut horizontal, mut pos) = random_boat_pos(boat);
 
-    while !valid_pos(boats, boat, horizontal, pos) {
+    while !valid_boat_pos(boats, boat, horizontal, pos) {
         (horizontal, pos) = random_boat_pos(boat);
     }
 
@@ -74,7 +74,7 @@ pub fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
         rng.gen_range(0..NUM_ROWS),
     );
 
-    while !valid_shot(shots, x, y) {
+    while !valid_shot(shots, Pos::new(x, y)) {
         (x, y) = (
             rng.gen_range(0..NUM_COLS),
             rng.gen_range(0..NUM_ROWS),
