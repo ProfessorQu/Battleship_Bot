@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
-use super::constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS};
+use super::constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
-    Hit(usize),
+    Hit(Boat),
     Miss
 }
 
@@ -33,13 +33,13 @@ impl Player {
 }
 
 type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize);
-type PlaceFn = fn() -> [[usize; NUM_ROWS]; NUM_COLS];
+type PlaceFn = fn() -> [[Boat; NUM_ROWS]; NUM_COLS];
 
 pub struct Battleship {
     current_player: Player,
 
-    player1_boats: [[usize; NUM_ROWS]; NUM_COLS],
-    player2_boats: [[usize; NUM_ROWS]; NUM_COLS],
+    player1_boats: [[Boat; NUM_ROWS]; NUM_COLS],
+    player2_boats: [[Boat; NUM_ROWS]; NUM_COLS],
 
     player1_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
     player2_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
@@ -73,7 +73,7 @@ impl Battleship {
         }
     }
 
-    fn get_boats(&self, player: Player) -> [[usize; NUM_ROWS]; NUM_COLS] {
+    fn get_boats(&self, player: Player) -> [[Boat; NUM_ROWS]; NUM_COLS] {
         match player {
             Player::P1 => self.player1_boats,
             Player::P2 => self.player2_boats,
