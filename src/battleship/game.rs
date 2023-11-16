@@ -18,24 +18,25 @@ impl Debug for Shot {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum PlayerType {
+pub enum Player {
     P1,
     P2
 }
 
-impl PlayerType {
+impl Player {
     pub fn opponent(&self) -> Self {
         match self {
-            PlayerType::P1 => Self::P2,
-            PlayerType::P2 => Self::P1
+            Player::P1 => Self::P2,
+            Player::P2 => Self::P1
         }
     }
 }
 
 type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize);
+type PlaceFn = fn() -> [[usize; NUM_ROWS]; NUM_COLS];
 
 pub struct Game {
-    current_player: PlayerType,
+    current_player: Player,
 
     player1_boats: [[usize; NUM_ROWS]; NUM_COLS],
     player2_boats: [[usize; NUM_ROWS]; NUM_COLS],
@@ -45,56 +46,62 @@ pub struct Game {
 
     player1_shoot_fn: ShootFn,
     player2_shoot_fn: ShootFn,
+
+    player1_place_fn: PlaceFn,
+    player2_place_fn: PlaceFn,
 }
 
 impl Game {
     pub fn new(
-        player1_boats: [[usize; NUM_ROWS]; NUM_COLS], player2_boats: [[usize; NUM_ROWS]; NUM_COLS],
+        player1_place_fn: PlaceFn, player2_place_fn: PlaceFn,
         player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn
     ) -> Self {
         Self {
-            current_player: PlayerType::P1,
+            current_player: Player::P1,
 
-            player1_boats,
-            player2_boats,
+            player1_boats: [[0; NUM_ROWS]; NUM_COLS],
+            player2_boats: [[0; NUM_ROWS]; NUM_COLS],
 
             player1_shots: [[None; NUM_ROWS]; NUM_COLS],
             player2_shots: [[None; NUM_ROWS]; NUM_COLS],
 
             player1_shoot_fn,
-            player2_shoot_fn
+            player2_shoot_fn,
+
+            player1_place_fn,
+            player2_place_fn
         }
     }
 
-    fn get_boats(&self, player: PlayerType) -> [[usize; NUM_ROWS]; NUM_COLS] {
+    fn get_boats(&self, player: Player) -> [[usize; NUM_ROWS]; NUM_COLS] {
         match player {
-            PlayerType::P1 => self.player1_boats,
-            PlayerType::P2 => self.player2_boats,
+            Player::P1 => self.player1_boats,
+            Player::P2 => self.player2_boats,
         }
     }
 
-    fn get_shoot_fn(&self, player: PlayerType) -> ShootFn {
+    fn get_shoot_fn(&self, player: Player) -> ShootFn {
         match player {
-            PlayerType::P1 => self.player1_shoot_fn,
-            PlayerType::P2 => self.player2_shoot_fn,
+            Player::P1 => self.player1_shoot_fn,
+            Player::P2 => self.player2_shoot_fn,
         }
     }
 
-    pub fn get_shots(&self, player: PlayerType) -> [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
+    fn get_shots(&self, player: Player) -> [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
         match player {
-            PlayerType::P1 => self.player1_shots,
-            PlayerType::P2 => self.player2_shots,
+            Player::P1 => self.player1_shots,
+            Player::P2 => self.player2_shots,
         }
     }
 
-    pub fn get_shots_ref(&mut self, player: PlayerType) -> &mut [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
+    fn get_shots_ref(&mut self, player: Player) -> &mut [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
         match player {
-            PlayerType::P1 => &mut self.player1_shots,
-            PlayerType::P2 => &mut self.player2_shots,
+            Player::P1 => &mut self.player1_shots,
+            Player::P2 => &mut self.player2_shots,
         }
     }
 
-    pub fn step(&mut self) {
+    fn step(&mut self) {
         let pos = (self.get_shoot_fn(self.current_player))(self.get_shots(self.current_player));
 
         self.shoot(self.current_player, pos);
@@ -102,7 +109,19 @@ impl Game {
         self.current_player = self.current_player.opponent();
     }
 
-    pub fn play(&mut self) -> PlayerType {
+    fn reset(&mut self) {
+        self.player1_boats = (self.player1_place_fn)();
+        self.player2_boats = (self.player2_place_fn)();
+
+        self.player1_shots = [[None; NUM_ROWS]; NUM_COLS];
+        self.player2_shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        self.current_player = Player::P1;
+    }
+
+    pub fn play(&mut self) -> Player {
+        self.reset();
+
         let mut won = None;
 
         while won.is_none() {
@@ -113,7 +132,7 @@ impl Game {
         won.expect("No player won")
     }
 
-    pub fn shoot(&mut self, player: PlayerType, pos: (usize, usize)) {
+    fn shoot(&mut self, player: Player, pos: (usize, usize)) {
         let (x, y) = pos;
         let boat = self.get_boats(player.opponent())[x][y];
 
@@ -124,7 +143,7 @@ impl Game {
         };
     }
 
-    pub fn show_boats(&self, player: PlayerType) {
+    pub fn show_boats(&self, player: Player) {
         let boats = self.get_boats(player);
 
         println!("{}", "-".repeat(boats.len() * 3 + 2));
@@ -145,7 +164,7 @@ impl Game {
         println!("{}", "-".repeat(boats.len() * 3 + 2));
     }
 
-    pub fn show_shots(&self, player: PlayerType) {
+    pub fn show_shots(&self, player: Player) {
         let shots = self.get_shots(player);
 
         println!("{}", "-".repeat(shots.len() * 3 + 2));
@@ -165,7 +184,7 @@ impl Game {
         println!("{}", "-".repeat(shots.len() * 3 + 2));
     }
 
-    pub fn won(&self) -> Option<PlayerType> {
+    pub fn won(&self) -> Option<Player> {
         let player1_total_shots: Vec<Option<Shot>> = self.player1_shots
             .iter()
             .flat_map(|array| array.iter())
@@ -188,9 +207,9 @@ impl Game {
         if player1_total_shots.len() < MIN_SHOTS {
             None
         } else if player1_hits.len() == MIN_SHOTS {
-            Some(PlayerType::P1)
+            Some(Player::P1)
         } else if player2_hits.len() == MIN_SHOTS {
-            Some(PlayerType::P2)
+            Some(Player::P2)
         } else {
             None
         }

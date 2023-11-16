@@ -1,6 +1,6 @@
 use rand::{random, Rng};
 
-use crate::battleship::{Player, constants::{BOATS, NUM_COLS, NUM_ROWS, LENGTHS}, game::Shot};
+use crate::battleship::{PlayerTrait, constants::{BOATS, NUM_COLS, NUM_ROWS, LENGTHS}, game::Shot};
 
 use super::utils::{valid_pos, valid_shot};
 
@@ -59,7 +59,7 @@ impl Random {
     }
 }
 
-impl Player for Random {
+impl PlayerTrait for Random {
     fn place_boats() -> [[usize; NUM_ROWS]; NUM_COLS] {
         let mut boats = [[0; NUM_ROWS]; NUM_COLS];
 

@@ -3,28 +3,31 @@
 mod battleship;
 
 use battleship::Game;
+use battleship::PlayerTrait;
 use battleship::Player;
-use battleship::PlayerType;
 use battleship::Random;
 
 fn main() {
+    let mut p1_won = 0;
+    let mut p2_won = 0;
+
     let mut game = Game::new(
-        Random::place_boats(),
-        Random::place_boats(),
+        Random::place_boats,
+        Random::place_boats,
 
         Random::shoot,
         Random::shoot
     );
 
-    let won = game.play();
+    for _ in 0..1000 {
+        let won = game.play();
 
-    println!("{:?}", won);
+        if matches!(won, Player::P1) {
+            p1_won += 1;
+        } else if matches!(won, Player::P2) {
+            p2_won += 1;
+        }
+    }
 
-    println!("P1 BOATS ================================");
-    game.show_boats(PlayerType::P1);
-    game.show_shots(PlayerType::P2);
-
-    println!("P2 BOATS ================================");
-    game.show_boats(PlayerType::P2);
-    game.show_shots(PlayerType::P1);
+    println!("p1: {}; p2: {}", p1_won, p2_won);
 }
