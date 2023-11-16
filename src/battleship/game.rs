@@ -35,7 +35,7 @@ impl Player {
 type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize);
 type PlaceFn = fn() -> [[usize; NUM_ROWS]; NUM_COLS];
 
-pub struct Game {
+pub struct Battleship {
     current_player: Player,
 
     player1_boats: [[usize; NUM_ROWS]; NUM_COLS],
@@ -51,7 +51,7 @@ pub struct Game {
     player2_place_fn: PlaceFn,
 }
 
-impl Game {
+impl Battleship {
     pub fn new(
         player1_place_fn: PlaceFn, player2_place_fn: PlaceFn,
         player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn
@@ -119,7 +119,7 @@ impl Game {
         self.current_player = Player::P1;
     }
 
-    pub fn play(&mut self) -> Player {
+    fn play(&mut self) -> Player {
         self.reset();
 
         let mut won = None;
@@ -130,6 +130,23 @@ impl Game {
         }
 
         won.expect("No player won")
+    }
+
+    pub fn play_games(&mut self, num_games: usize) -> (usize, usize) {
+        let mut p1_won = 0;
+        let mut p2_won = 0;
+
+        for _ in 0..num_games {
+            let won = self.play();
+
+            if matches!(won, Player::P1) {
+                p1_won += 1;
+            } else if matches!(won, Player::P2) {
+                p2_won += 1;
+            }
+        }
+
+        (p1_won, p2_won)
     }
 
     fn shoot(&mut self, player: Player, pos: (usize, usize)) {
