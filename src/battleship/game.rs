@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat};
+use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat, EMPTY}, players::Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -32,7 +32,7 @@ impl Player {
     }
 }
 
-type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize);
+type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos;
 type PlaceFn = fn() -> [[Boat; NUM_ROWS]; NUM_COLS];
 
 pub struct Battleship {
@@ -59,8 +59,8 @@ impl Battleship {
         Self {
             current_player: Player::P1,
 
-            player1_boats: [[0; NUM_ROWS]; NUM_COLS],
-            player2_boats: [[0; NUM_ROWS]; NUM_COLS],
+            player1_boats: [[EMPTY; NUM_ROWS]; NUM_COLS],
+            player2_boats: [[EMPTY; NUM_ROWS]; NUM_COLS],
 
             player1_shots: [[None; NUM_ROWS]; NUM_COLS],
             player2_shots: [[None; NUM_ROWS]; NUM_COLS],
@@ -147,11 +147,11 @@ impl Battleship {
         (p1_won, p2_won)
     }
 
-    fn shoot(&mut self, player: Player, pos: (usize, usize)) {
-        let (x, y) = pos;
+    fn shoot(&mut self, player: Player, pos: Pos) {
+        let (x, y) = (pos.x, pos.y);
         let boat = self.get_boats(player.opponent())[x][y];
 
-        self.get_shots_ref(player)[x][y] = if boat > 0 {
+        self.get_shots_ref(player)[x][y] = if boat != EMPTY {
             Some(Shot::Hit(boat))
         } else {
             Some(Shot::Miss)
@@ -234,6 +234,12 @@ impl Battleship {
 
         while winner.is_none() {
             self.step();
+
+            if matches!(self.current_player, Player::P2) {
+            //     println!("TURN =========================================================================");
+            //     self.show_boats(Player::P1);
+                self.show_shots(Player::P2);
+            }
 
             winner = self.winner();
         }
