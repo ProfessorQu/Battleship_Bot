@@ -1,12 +1,10 @@
 use rand::{random, Rng};
 
-use crate::battleship::{PlayerTrait, constants::{BOATS, NUM_COLS, NUM_ROWS, LENGTHS}, game::Shot};
+use crate::battleship::{constants::{BOATS, NUM_COLS, NUM_ROWS, LENGTHS}, game::Shot};
 
 use super::utils::{valid_pos, valid_shot};
 
-pub struct Random {
-
-}
+pub struct Random { }
 
 impl Random {
     fn random_boat_pos(boat: usize) -> (bool, usize, usize) {
@@ -57,10 +55,8 @@ impl Random {
             }
         }
     }
-}
 
-impl PlayerTrait for Random {
-    fn place_boats() -> [[usize; NUM_ROWS]; NUM_COLS] {
+    pub fn place_boats_random() -> [[usize; NUM_ROWS]; NUM_COLS] {
         let mut boats = [[0; NUM_ROWS]; NUM_COLS];
 
         for boat in BOATS {
@@ -70,7 +66,7 @@ impl PlayerTrait for Random {
         boats
     }
 
-    fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize) {
+    pub fn shoot_random(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize) {
         let mut random = rand::thread_rng();
 
         let (mut x, mut y) = (

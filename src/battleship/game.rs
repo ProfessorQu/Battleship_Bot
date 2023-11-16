@@ -103,9 +103,7 @@ impl Battleship {
 
     fn step(&mut self) {
         let pos = (self.get_shoot_fn(self.current_player))(self.get_shots(self.current_player));
-
         self.shoot(self.current_player, pos);
-
         self.current_player = self.current_player.opponent();
     }
 
@@ -129,7 +127,7 @@ impl Battleship {
             won = self.won();
         }
 
-        won.expect("No player won")
+        won.expect("It's a draw?")
     }
 
     pub fn play_games(&mut self, num_games: usize) -> (usize, usize) {
@@ -202,30 +200,28 @@ impl Battleship {
     }
 
     pub fn won(&self) -> Option<Player> {
-        let player1_total_shots: Vec<Option<Shot>> = self.player1_shots
-            .iter()
-            .flat_map(|array| array.iter())
-            .cloned().collect();
-        let player1_hits: Vec<Shot> = player1_total_shots
-            .iter()
-            .flatten()
-            .filter(|item| matches!(item, Shot::Hit(_)))
-            .cloned().collect();
-        let player2_total_shots: Vec<Option<Shot>> = self.player2_shots
-            .iter()
-            .flat_map(|array| array.iter())
-            .cloned().collect();
-        let player2_hits: Vec<Shot> = player2_total_shots
-            .iter()
-            .flatten()
-            .filter(|item| matches!(item, Shot::Hit(_)))
-            .cloned().collect();
+        let mut player1_hits = 0;
+        let mut player2_hits = 0;
 
-        if player1_total_shots.len() < MIN_SHOTS {
-            None
-        } else if player1_hits.len() == MIN_SHOTS {
+        for x in 0..NUM_COLS {
+            for y in 0..NUM_ROWS {
+                if let Some(shot) = self.player1_shots[x][y] {
+                    if matches!(shot, Shot::Hit(_)) {
+                        player1_hits += 1;
+                    }
+                }
+
+                if let Some(shot) = self.player2_shots[x][y] {
+                    if matches!(shot, Shot::Hit(_)) {
+                        player2_hits += 1;
+                    }
+                }
+            }
+        }
+
+        if player1_hits == MIN_SHOTS {
             Some(Player::P1)
-        } else if player2_hits.len() == MIN_SHOTS {
+        } else if player2_hits == MIN_SHOTS {
             Some(Player::P2)
         } else {
             None
