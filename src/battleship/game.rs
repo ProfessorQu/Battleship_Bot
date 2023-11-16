@@ -120,14 +120,14 @@ impl Battleship {
     fn play(&mut self) -> Player {
         self.reset();
 
-        let mut won = None;
+        let mut winner = None;
 
-        while won.is_none() {
+        while winner.is_none() {
             self.step();
-            won = self.won();
+            winner = self.winner();
         }
 
-        won.expect("It's a draw?")
+        winner.expect("It's a draw?")
     }
 
     pub fn play_games(&mut self, num_games: usize) -> (usize, usize) {
@@ -135,11 +135,11 @@ impl Battleship {
         let mut p2_won = 0;
 
         for _ in 0..num_games {
-            let won = self.play();
+            let winner = self.play();
 
-            if matches!(won, Player::P1) {
+            if matches!(winner, Player::P1) {
                 p1_won += 1;
-            } else if matches!(won, Player::P2) {
+            } else if matches!(winner, Player::P2) {
                 p2_won += 1;
             }
         }
@@ -158,7 +158,7 @@ impl Battleship {
         };
     }
 
-    pub fn show_boats(&self, player: Player) {
+    fn show_boats(&self, player: Player) {
         let boats = self.get_boats(player);
 
         println!("{}", "-".repeat(boats.len() * 3 + 2));
@@ -179,7 +179,7 @@ impl Battleship {
         println!("{}", "-".repeat(boats.len() * 3 + 2));
     }
 
-    pub fn show_shots(&self, player: Player) {
+    fn show_shots(&self, player: Player) {
         let shots = self.get_shots(player);
 
         println!("{}", "-".repeat(shots.len() * 3 + 2));
@@ -199,7 +199,7 @@ impl Battleship {
         println!("{}", "-".repeat(shots.len() * 3 + 2));
     }
 
-    pub fn won(&self) -> Option<Player> {
+    fn winner(&self) -> Option<Player> {
         let mut player1_hits = 0;
         let mut player2_hits = 0;
 
@@ -226,5 +226,26 @@ impl Battleship {
         } else {
             None
         }
+    }
+
+    pub fn play_and_show_game(&mut self) {
+        let mut winner = None;
+        self.reset();
+
+        while winner.is_none() {
+            self.step();
+
+            winner = self.winner();
+        }
+
+        println!("P1 BOATS ===============");
+        self.show_boats(Player::P1);
+        self.show_shots(Player::P2);
+
+        println!("P2 BOATS ===============");
+        self.show_boats(Player::P2);
+        self.show_shots(Player::P1);
+
+        println!("{:?} won", winner.expect("Noone won"))
     }
 }

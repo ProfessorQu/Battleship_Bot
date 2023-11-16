@@ -1,4 +1,4 @@
-use rand::{random, Rng};
+use rand::{random, Rng, seq::SliceRandom};
 
 use crate::battleship::{constants::{BOATS, NUM_COLS, NUM_ROWS, LENGTHS}, game::Shot};
 
@@ -22,12 +22,12 @@ impl Random {
             )
         };
 
-        let mut random = rand::thread_rng();
+        let mut rng = rand::thread_rng();
         
         (
             horizontal,
-            random.gen_range(x_range),
-            random.gen_range(y_range)
+            rng.gen_range(x_range),
+            rng.gen_range(y_range)
         )
     }
 
@@ -56,7 +56,7 @@ impl Random {
         }
     }
 
-    pub fn place_boats_random() -> [[usize; NUM_ROWS]; NUM_COLS] {
+    pub fn place_boats() -> [[usize; NUM_ROWS]; NUM_COLS] {
         let mut boats = [[0; NUM_ROWS]; NUM_COLS];
 
         for boat in BOATS {
@@ -66,21 +66,73 @@ impl Random {
         boats
     }
 
-    pub fn shoot_random(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize) {
-        let mut random = rand::thread_rng();
+    pub fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize) {
+        let mut rng = rand::thread_rng();
 
         let (mut x, mut y) = (
-            random.gen_range(0..NUM_COLS),
-            random.gen_range(0..NUM_ROWS)
+            rng.gen_range(0..NUM_COLS),
+            rng.gen_range(0..NUM_ROWS)
         );
 
         while !valid_shot(shots, x, y) {
             (x, y) = (
-                random.gen_range(0..NUM_COLS),
-                random.gen_range(0..NUM_ROWS)
+                rng.gen_range(0..NUM_COLS),
+                rng.gen_range(0..NUM_ROWS)
             );
         }
 
         (x, y)
+    }
+
+    fn offset_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], x: usize, y: usize) -> (usize, usize) {
+        let mut positions = vec![];
+
+        if x as i32 - 1 > 0 && valid_shot(shots, x - 1, y) {
+            positions.push((x - 1, y));
+        }
+        if x + 1 < NUM_COLS && valid_shot(shots, x + 1, y) {
+            positions.push((x + 1, y));
+        }
+        if y as i32 - 1 > 0 && valid_shot(shots, x, y - 1) {
+            positions.push((x, y - 1));
+        }
+        if y + 1 < NUM_ROWS && valid_shot(shots, x, y + 1) {
+            positions.push((x, y + 1));
+        }
+
+        let rand_pos = positions.choose(&mut rand::thread_rng());
+
+        if let Some(pos) = rand_pos {
+            *pos
+        } else {
+            Random::shoot(shots)
+        }
+    }
+
+    pub fn shoot_and_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> (usize, usize) {
+        let mut hits = vec![];
+
+        for (x, column) in shots.iter().enumerate() {
+            for (y, shot) in column.iter().enumerate() {
+                if let Some(Shot::Hit(boat)) = shot {
+                    hits.push((*boat, x, y));
+                }
+            }
+        }
+    
+        for boat in BOATS {
+            let boat_hits = hits.iter().filter(|hit| hit.0 == boat);
+            let hits_len = boat_hits.clone().count();
+
+            if hits_len < LENGTHS[boat] && hits_len > 0 {
+                let (_, x, y) = boat_hits
+                .collect::<Vec<&(usize, usize, usize)>>()
+                .choose(&mut rand::thread_rng()).expect("No boat hits");
+
+                return Random::offset_pos(shots, *x, *y)
+            }
+        }
+
+        Random::shoot(shots)
     }
 } 

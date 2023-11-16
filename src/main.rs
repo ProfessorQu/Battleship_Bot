@@ -7,14 +7,16 @@ use battleship::Random;
 
 fn main() {
     let mut battleship = Battleship::new(
-        Random::place_boats_random,
-        Random::place_boats_random,
+        Random::place_boats,
+        Random::place_boats,
 
-        Random::shoot_random,
-        Random::shoot_random,
+        Random::shoot,
+        Random::shoot_and_focus,
     );
 
     let (p1_won, p2_won) = battleship.play_games(10_000);
 
     println!("p1: {}; p2: {}", p1_won, p2_won);
+
+    battleship.play_and_show_game();
 }
