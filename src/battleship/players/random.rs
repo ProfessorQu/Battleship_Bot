@@ -2,7 +2,7 @@ use rand::{random, Rng};
 
 use crate::battleship::{constants::{BOATS, NUM_COLS, NUM_ROWS, Boat, EMPTY}, game::Shot};
 
-use super::utils::{valid_boat_pos, valid_shot, length, random_focus, Pos};
+use super::utils::{valid_boat_pos, valid_shot, length, random_focus, Pos, focus};
 
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
@@ -86,6 +86,14 @@ pub fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
 
 pub fn shoot_and_random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
     if let Some(pos) = random_focus(shots) {
+        pos
+    } else {
+        shoot(shots)
+    }
+}
+
+pub fn shoot_and_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+    if let Some(pos) = focus(shots) {
         pos
     } else {
         shoot(shots)

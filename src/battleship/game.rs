@@ -105,10 +105,17 @@ impl Battleship {
 
     fn step(&mut self) {
         let pos = (self.get_shoot_fn(self.current_player))(self.get_shots(self.current_player));
-
+        
         debug_assert!(valid_shot(self.get_shots(self.current_player), pos));
 
         self.shoot(self.current_player, pos);
+
+        // if matches!(self.current_player, Player::P1) {
+        //     println!("Shot at {:?} is {:?}", pos, self.get_shots(Player::P1)[pos.x][pos.y]);
+        //     println!("P1 Boats ====================");
+        //     self.show_shots(Player::P1);
+        // }
+
         self.current_player = self.current_player.opponent();
     }
 

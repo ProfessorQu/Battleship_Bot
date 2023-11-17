@@ -61,7 +61,7 @@ pub fn valid_shot_any(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], x: i32, y: i3
     shots[x as usize][y as usize].is_none()
 }
 
-fn offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], pos: Pos) -> Option<Pos> {
+fn random_offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], pos: Pos) -> Option<Pos> {
     let mut positions = vec![];
 
     let (x, y) = (pos.x, pos.y);
@@ -77,7 +77,7 @@ fn offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], pos: Pos) -> Op
     rand_pos.copied()
 }
 
-pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+fn get_hits(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Vec<(Boat, usize, usize)> {
     let mut hits = vec![];
 
     for (x, column) in shots.iter().enumerate() {
@@ -87,6 +87,12 @@ pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> 
             }
         }
     }
+
+    hits
+}
+
+pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+    let hits = get_hits(shots);
 
     for boat in BOATS {
         let boat_hits = hits
@@ -99,12 +105,81 @@ pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> 
         if hits_len > 0 && hits_len < length(boat) {
             let boat_hits_vec: Vec<(Boat, usize, usize)> = boat_hits.collect();
 
-            let (_, x, y) = boat_hits_vec
-                .choose(&mut rand::thread_rng())
-                .copied()
-                .expect("No boat hits");
+            // let (_, x, y) = boat_hits_vec
+            //     .choose(&mut rand::thread_rng())
+            //     .copied()
+            //     .expect("No boat hits");
 
-            return offset_shoot_pos(shots, Pos::new(x, y))
+            let pos = if hits_len == 1 {
+                boat_hits_vec.first().copied().expect("No hits")
+            }
+            else {
+                let min_pos = boat_hits_vec
+                    .first().copied().expect("No hits");
+                let max_pos = boat_hits_vec
+                    .last().copied().expect("No hits");
+
+                [min_pos, max_pos]
+                    .choose(&mut rand::thread_rng())
+                    .copied().expect("No hits")
+            };
+
+            return random_offset_shoot_pos(shots, Pos::new(pos.1, pos.2))
+        }
+    }
+
+    None
+}
+
+pub fn focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+    let hits = get_hits(shots);
+
+    for boat in BOATS {
+        let boat_hits = hits
+            .iter()
+            .filter(|hit| hit.0 == boat)
+            .copied();
+
+        let hits_len = boat_hits.clone().count();
+
+        if hits_len > 1 && hits_len < length(boat) {
+            let boat_hits_vec: Vec<(Boat, usize, usize)> = boat_hits.collect();
+
+            let min_pos = boat_hits_vec
+                .first().copied().expect("No boats");
+            let max_pos = boat_hits_vec
+                .last().copied().expect("No boats");
+
+            let horizontal = max_pos.1 - min_pos.1 != 0;
+
+            let mut possible_positions = vec![];
+
+            if horizontal {
+                if valid_shot_any(shots, min_pos.1 as i32 - 1, min_pos.2 as i32) {
+                    possible_positions.push(Pos::new(min_pos.1 - 1, min_pos.2));
+                }
+                if valid_shot_any(shots, max_pos.1 as i32 + 1, max_pos.2 as i32) {
+                    possible_positions.push(Pos::new(max_pos.1 + 1, max_pos.2));
+                }
+            } else {
+                if valid_shot_any(shots, min_pos.1 as i32, min_pos.2 as i32 - 1) {
+                    possible_positions.push(Pos::new(min_pos.1, min_pos.2 - 1));
+                }
+                if valid_shot_any(shots, max_pos.1 as i32, max_pos.2 as i32 + 1) {
+                    possible_positions.push(Pos::new(max_pos.1, max_pos.2 + 1));
+                }
+            }
+
+            return possible_positions.choose(&mut rand::thread_rng()).copied();
+
+            // let (_, x, y) = boat_hits_vec
+            //     .choose(&mut rand::thread_rng())
+            //     .copied()
+            //     .expect("No boat hits");
+
+            // return random_offset_shoot_pos(shots, Pos::new(x, y))
+        } else if hits_len > 0 && hits_len < length(boat) {
+            return random_focus(shots)
         }
     }
 
