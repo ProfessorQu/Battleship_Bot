@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::battleship::players::utils::valid_shot;
 
-use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat, EMPTY}, players::utils::Pos};
+use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat}, players::utils::Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -61,8 +61,8 @@ impl Battleship {
         Self {
             current_player: Player::P1,
 
-            player1_boats: [[EMPTY; NUM_ROWS]; NUM_COLS],
-            player2_boats: [[EMPTY; NUM_ROWS]; NUM_COLS],
+            player1_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],
+            player2_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],
 
             player1_shots: [[None; NUM_ROWS]; NUM_COLS],
             player2_shots: [[None; NUM_ROWS]; NUM_COLS],
@@ -163,7 +163,7 @@ impl Battleship {
         let (x, y) = (pos.x, pos.y);
         let boat = self.get_boats(player.opponent())[x][y];
 
-        self.get_shots_ref(player)[x][y] = if boat != EMPTY {
+        self.get_shots_ref(player)[x][y] = if boat.has_some() {
             Some(Shot::Hit(boat))
         } else {
             Some(Shot::Miss)
@@ -177,11 +177,11 @@ impl Battleship {
         for y in 0..NUM_ROWS {
             print!("|");
             for column in boats {
-                let element = column[y];
-                let value = if element == 0 {
+                let boat = column[y];
+                let value = if boat.is_empty() {
                     "-".to_string()
                 } else {
-                    element.to_string()
+                    boat.to_string()
                 };
 
                 print!(" {} ", value);

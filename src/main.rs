@@ -18,10 +18,12 @@ fn main() {
 
     let now = SystemTime::now();
 
-    let (p1_won, p2_won) = battleship.play_games(10_000);
-    println!("p1: {}; p2: {}", p1_won, p2_won);
+    let num_games = 10_000;
+    let (p1_wins, p2_wins) = battleship.play_games(num_games);
+    println!("Elapsed: {} ms", now.elapsed().expect("No time passed").as_millis());
+    let (p1_winrate, p2_winrate) = (p1_wins as f32 / num_games as f32, p2_wins as f32 / num_games as f32);
+    println!("p1: {}; p2: {}\np1 winrate: {}, p2 winrate: {}", p1_wins, p2_wins, p1_winrate, p2_winrate);
 
     // battleship.play_and_show_game();
 
-    println!("Elapsed: {} ms", now.elapsed().expect("No time passed").as_millis());
 }
