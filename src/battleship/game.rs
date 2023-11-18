@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use crate::battleship::players::destroy::valid_shot;
+use crate::battleship::player::destroy::valid_shot;
 
-use super::{constants::{NUM_ROWS, NUM_COLS}, boat::{Boat, BOATS}, Pos, players::destroy::length};
+use super::{constants::{NUM_ROWS, NUM_COLS}, boat::{Boat, BOATS}, Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -61,7 +61,7 @@ impl Battleship {
     ) -> Self {
         Self {
             current_player: Player::P1,
-            min_shots: BOATS.iter().map(|boat| length(*boat)).sum(),
+            min_shots: BOATS.iter().map(|boat| boat.length()).sum(),
 
             player1_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],
             player2_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],

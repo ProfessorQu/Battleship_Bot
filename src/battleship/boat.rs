@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+const LENGTHS: [usize; 5] = [2, 3, 3, 4, 5];
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Boat {
     Empty,
@@ -23,6 +25,10 @@ impl Boat {
 
     pub fn has_some(&self) -> bool {
         !self.is_empty()
+    }
+
+    pub fn length(&self) -> usize {
+        LENGTHS[*self as usize - 1]
     }
 }
 

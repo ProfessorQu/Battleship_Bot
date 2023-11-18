@@ -1,13 +1,11 @@
 use rand::{random, Rng};
 
-use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
-
-use super::destroy::{valid_boat_pos, valid_shot, length, random_destroy, destroy};
+use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS}, game::Shot, boat::{Boat, BOATS}, Pos, player::destroy::{valid_boat_pos, valid_shot, random_destroy, destroy}}, pos};
 
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     let horizontal: bool = random();
-    let length = length(boat);
+    let length = boat.length();
 
     let (x_range, y_range) = if horizontal {
         (
@@ -46,12 +44,12 @@ fn place_boat(boats: &mut [[Boat; NUM_ROWS]; NUM_COLS], boat: Boat) {
     let (horizontal, pos) = random_valid_boat_pos(boats, boat);
 
     if horizontal {
-        for x_off in 0..length(boat) {
+        for x_off in 0..boat.length() {
             boats[pos.x + x_off][pos.y] = boat;
         }
     }
     else {
-        for y_off in 0..length(boat) {
+        for y_off in 0..boat.length() {
             boats[pos.x][pos.y + y_off] = boat;
         }
     }

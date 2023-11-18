@@ -4,11 +4,6 @@ use rand::seq::SliceRandom;
 
 use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
 
-const LENGTHS: [usize; 5] = [2, 3, 3, 4, 5];
-
-pub fn length(boat: Boat) -> usize {
-    LENGTHS[boat as usize - 1]
-}
 
 pub fn valid_boat_pos(
     boats: &[[Boat; NUM_ROWS]; NUM_COLS],
@@ -18,7 +13,7 @@ pub fn valid_boat_pos(
     let mut valid_position = true;
 
     if horizontal {
-        for x_off in 0..length(boat) {
+        for x_off in 0..boat.length() {
             if boats[pos.x + x_off][pos.y].has_some() {
                 valid_position = false;
                 break;
@@ -26,7 +21,7 @@ pub fn valid_boat_pos(
         }
     }
     else {
-        for y_off in 0..length(boat) {
+        for y_off in 0..boat.length() {
             if boats[pos.x][pos.y + y_off].has_some() {
                 valid_position = false;
                 break;
@@ -138,11 +133,12 @@ pub fn random_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos
 
         let hits_len = boat_hits.clone().count();
 
-        if hits_len > 0 && hits_len < length(boat) {
-            let boat_hits_vec: Vec<Pos> = boat_hits.collect();
-
-            return random_offset_shoot_pos(shots, boat_hits_vec)
+        if hits_len == 0 || hits_len == boat.length() {
+            continue
         }
+
+        let boat_hits_vec: Vec<Pos> = boat_hits.collect();
+        return random_offset_shoot_pos(shots, boat_hits_vec)
     }
 
     None
@@ -162,14 +158,16 @@ pub fn destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
 
         let hits_len = boat_hits.clone().count();
 
-        if hits_len > 0 && hits_len < length(boat) {
-            let boat_hits_vec: Vec<Pos> = boat_hits.collect();
+        if hits_len == 0 || hits_len == boat.length() {
+            continue
+        }
 
-            if hits_len > 1 {
-                return offset_shoot_pos(shots, boat_hits_vec);
-            } else {
-                return random_offset_shoot_pos(shots, boat_hits_vec)
-            }
+        let boat_hits_vec: Vec<Pos> = boat_hits.collect();
+
+        if hits_len > 1 {
+            return offset_shoot_pos(shots, boat_hits_vec);
+        } else {
+            return random_offset_shoot_pos(shots, boat_hits_vec)
         }
     }
 

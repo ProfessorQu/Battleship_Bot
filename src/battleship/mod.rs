@@ -6,7 +6,8 @@ pub mod constants;
 
 pub mod boat;
 
-pub mod players;
+pub mod player;
+pub use player::players;
 
 mod pos;
 pub use pos::Pos;
