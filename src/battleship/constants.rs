@@ -7,5 +7,3 @@ pub const OFFSETS: [(i32, i32); 4] = [
     (0, 1),
     (0, -1)
 ];
-
-pub const MIN_SHOTS: usize = 2 + 3 + 3 + 4 + 5;

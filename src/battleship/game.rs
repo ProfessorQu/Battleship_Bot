@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::battleship::players::destroy::valid_shot;
 
-use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS}, boat::Boat, Pos};
+use super::{constants::{NUM_ROWS, NUM_COLS}, boat::{Boat, BOATS}, Pos, players::destroy::length};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -39,6 +39,7 @@ type PlaceFn = fn() -> [[Boat; NUM_ROWS]; NUM_COLS];
 
 pub struct Battleship {
     current_player: Player,
+    min_shots: usize,
 
     player1_boats: [[Boat; NUM_ROWS]; NUM_COLS],
     player2_boats: [[Boat; NUM_ROWS]; NUM_COLS],
@@ -60,6 +61,7 @@ impl Battleship {
     ) -> Self {
         Self {
             current_player: Player::P1,
+            min_shots: BOATS.iter().map(|boat| length(*boat)).sum(),
 
             player1_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],
             player2_boats: [[Boat::Empty; NUM_ROWS]; NUM_COLS],
@@ -231,9 +233,9 @@ impl Battleship {
             }
         }
 
-        if player1_hits == MIN_SHOTS {
+        if player1_hits == self.min_shots {
             Some(Player::P1)
-        } else if player2_hits == MIN_SHOTS {
+        } else if player2_hits == self.min_shots {
             Some(Player::P2)
         } else {
             None
