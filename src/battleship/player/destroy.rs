@@ -2,35 +2,9 @@ use std::vec;
 
 use rand::seq::SliceRandom;
 
-use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS, BoatMap, ShotMap}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
+use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS, ShotMap}, boat::BOATS, Pos}, pos};
 
-
-pub fn valid_boat_pos(
-    boats: &BoatMap,
-    boat: Boat,
-    horizontal: bool, pos: Pos
-) -> bool {
-    let mut valid_position = true;
-
-    if horizontal {
-        for x_off in 0..boat.length() {
-            if boats[pos.x + x_off][pos.y].has_some() {
-                valid_position = false;
-                break;
-            }
-        }
-    }
-    else {
-        for y_off in 0..boat.length() {
-            if boats[pos.x][pos.y + y_off].has_some() {
-                valid_position = false;
-                break;
-            }
-        }
-    }
-
-    valid_position
-}
+use super::utils::get_hits;
 
 pub fn valid_shot(shots: ShotMap, pos: Pos) -> bool  {
     shots[pos.x][pos.y].is_none()
@@ -105,19 +79,6 @@ fn offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Pos> {
     positions.choose(&mut rand::thread_rng()).copied()
 }
 
-fn get_hits(shots: ShotMap) -> Vec<(Boat, usize, usize)> {
-    let mut hits = vec![];
-
-    for (x, column) in shots.iter().enumerate() {
-        for (y, shot) in column.iter().enumerate() {
-            if let Some(Shot::Hit(boat)) = shot {
-                hits.push((*boat, x, y));
-            }
-        }
-    }
-
-    hits
-}
 
 pub fn random_destroy(shots: ShotMap) -> Option<Pos> {
     let hits = get_hits(shots);

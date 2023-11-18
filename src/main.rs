@@ -9,11 +9,11 @@ use battleship::players;
 
 fn main() {
     let mut battleship = Battleship::new(
-        players::random::place,
-        players::random::place,
+        players::random::place_boats,
+        players::random::place_boats,
 
         players::random::find_and_destroy,
-        players::random::find_and_smart_destroy,
+        players::grid::find_and_destroy,
     );
 
     let now = SystemTime::now();
@@ -25,5 +25,4 @@ fn main() {
     println!("p1: {}; p2: {}\np1 winrate: {}, p2 winrate: {}", p1_wins, p2_wins, p1_winrate, p2_winrate);
 
     // battleship.play_and_show_game();
-
 }

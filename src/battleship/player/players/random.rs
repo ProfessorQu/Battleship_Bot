@@ -1,6 +1,33 @@
 use rand::{random, Rng};
 
-use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS, BoatMap, ShotMap}, boat::{Boat, BOATS}, Pos, player::destroy::{valid_boat_pos, valid_shot, random_destroy, destroy}}, pos};
+use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS, BoatMap, ShotMap}, boat::{Boat, BOATS}, Pos, player::destroy::{valid_shot, random_destroy, destroy}, Player}, pos};
+
+fn no_overlaps(
+    boats: &BoatMap,
+    boat: Boat,
+    horizontal: bool, pos: Pos
+) -> bool {
+    let mut valid_position = true;
+
+    if horizontal {
+        for x_off in 0..boat.length() {
+            if boats[pos.x + x_off][pos.y].has_some() {
+                valid_position = false;
+                break;
+            }
+        }
+    }
+    else {
+        for y_off in 0..boat.length() {
+            if boats[pos.x][pos.y + y_off].has_some() {
+                valid_position = false;
+                break;
+            }
+        }
+    }
+
+    valid_position
+}
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     let horizontal: bool = random();
@@ -32,7 +59,7 @@ fn random_boat_pos(boat: Boat) -> (bool, Pos) {
 fn random_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
     let (mut horizontal, mut pos) = random_boat_pos(boat);
 
-    while !valid_boat_pos(boats, boat, horizontal, pos) {
+    while !no_overlaps(boats, boat, horizontal, pos) {
         (horizontal, pos) = random_boat_pos(boat);
     }
 
@@ -56,7 +83,7 @@ fn place_boat(boats: &mut BoatMap, boat: Boat) {
     }
 }
 
-pub fn place() -> BoatMap {
+pub fn place_boats() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
@@ -84,7 +111,7 @@ pub fn find(shots: ShotMap) -> Pos {
     pos!(x, y)
 }
 
-pub fn find_and_destroy(shots: ShotMap) -> Pos {
+pub fn find_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = random_destroy(shots) {
         pos
     } else {
@@ -92,7 +119,7 @@ pub fn find_and_destroy(shots: ShotMap) -> Pos {
     }
 }
 
-pub fn find_and_smart_destroy(shots: ShotMap) -> Pos {
+pub fn find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
