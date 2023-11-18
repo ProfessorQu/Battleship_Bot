@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 
 const LENGTHS: [usize; 5] = [2, 3, 3, 4, 5];
 
@@ -10,6 +10,12 @@ pub enum Boat {
     Cruiser,
     Battleship,
     Carrier
+}
+
+impl Debug for Boat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", *self as usize)
+    }
 }
 
 impl Display for Boat {
