@@ -2,11 +2,11 @@ use std::vec;
 
 use rand::seq::SliceRandom;
 
-use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
+use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS, BoatMap, ShotMap}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
 
 
 pub fn valid_boat_pos(
-    boats: &[[Boat; NUM_ROWS]; NUM_COLS],
+    boats: &BoatMap,
     boat: Boat,
     horizontal: bool, pos: Pos
 ) -> bool {
@@ -32,17 +32,17 @@ pub fn valid_boat_pos(
     valid_position
 }
 
-pub fn valid_shot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], pos: Pos) -> bool  {
+pub fn valid_shot(shots: ShotMap, pos: Pos) -> bool  {
     shots[pos.x][pos.y].is_none()
 }
 
-pub fn valid_shot_any(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], x: i32, y: i32) -> bool {
+pub fn valid_shot_any(shots: ShotMap, x: i32, y: i32) -> bool {
     x >= 0 && x < NUM_COLS as i32 &&
     y >= 0 && y < NUM_ROWS as i32 &&
     shots[x as usize][y as usize].is_none()
 }
 
-fn add_valid_position_with_offset(positions: &mut Vec<Pos>, shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], x: i32, y: i32) {
+fn add_valid_position_with_offset(positions: &mut Vec<Pos>, shots: ShotMap, x: i32, y: i32) {
     if valid_shot_any(shots, x, y) {
         positions.push(pos!(
             x as usize,
@@ -51,7 +51,7 @@ fn add_valid_position_with_offset(positions: &mut Vec<Pos>, shots: [[Option<Shot
     }
 }
 
-fn random_offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], boat_hits_vec: Vec<Pos>) -> Option<Pos> {
+fn random_offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Pos> {
     let pos = if boat_hits_vec.len() == 1 {
         boat_hits_vec.first().copied().expect("No hits")
     }
@@ -76,7 +76,7 @@ fn random_offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], boat_hit
     positions.choose(&mut rand::thread_rng()).copied()
 }
 
-fn offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], boat_hits_vec: Vec<Pos>) -> Option<Pos> {
+fn offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Pos> {
     let min_pos = boat_hits_vec
         .first().copied().expect("No boats");
     let max_pos = boat_hits_vec
@@ -105,7 +105,7 @@ fn offset_shoot_pos(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS], boat_hits_vec: 
     positions.choose(&mut rand::thread_rng()).copied()
 }
 
-fn get_hits(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Vec<(Boat, usize, usize)> {
+fn get_hits(shots: ShotMap) -> Vec<(Boat, usize, usize)> {
     let mut hits = vec![];
 
     for (x, column) in shots.iter().enumerate() {
@@ -119,7 +119,7 @@ fn get_hits(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Vec<(Boat, usize, us
     hits
 }
 
-pub fn random_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+pub fn random_destroy(shots: ShotMap) -> Option<Pos> {
     let hits = get_hits(shots);
 
     for boat in BOATS {
@@ -144,7 +144,7 @@ pub fn random_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos
     None
 }
 
-pub fn destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+pub fn destroy(shots: ShotMap) -> Option<Pos> {
     let hits = get_hits(shots);
 
     for boat in BOATS {

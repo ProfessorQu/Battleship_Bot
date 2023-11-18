@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::battleship::player::destroy::valid_shot;
 
-use super::{constants::{NUM_ROWS, NUM_COLS}, boat::{Boat, BOATS}, Pos};
+use super::{constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap}, boat::{Boat, BOATS}, Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -34,18 +34,18 @@ impl Player {
     }
 }
 
-type ShootFn = fn([[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos;
-type PlaceFn = fn() -> [[Boat; NUM_ROWS]; NUM_COLS];
+type ShootFn = fn(ShotMap) -> Pos;
+type PlaceFn = fn() -> BoatMap;
 
 pub struct Battleship {
     current_player: Player,
     min_shots: usize,
 
-    player1_boats: [[Boat; NUM_ROWS]; NUM_COLS],
-    player2_boats: [[Boat; NUM_ROWS]; NUM_COLS],
+    player1_boats: BoatMap,
+    player2_boats: BoatMap,
 
-    player1_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
-    player2_shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS],
+    player1_shots: ShotMap,
+    player2_shots: ShotMap,
 
     player1_shoot_fn: ShootFn,
     player2_shoot_fn: ShootFn,
@@ -91,14 +91,14 @@ impl Battleship {
         }
     }
 
-    fn get_shots(&self, player: Player) -> [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
+    fn get_shots(&self, player: Player) -> ShotMap {
         match player {
             Player::P1 => self.player1_shots,
             Player::P2 => self.player2_shots,
         }
     }
 
-    fn get_shots_ref(&mut self, player: Player) -> &mut [[Option<Shot>; NUM_ROWS]; NUM_COLS] {
+    fn get_shots_ref(&mut self, player: Player) -> &mut ShotMap {
         match player {
             Player::P1 => &mut self.player1_shots,
             Player::P2 => &mut self.player2_shots,

@@ -1,7 +1,6 @@
 use rand::{random, Rng};
 
-use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS}, game::Shot, boat::{Boat, BOATS}, Pos, player::destroy::{valid_boat_pos, valid_shot, random_destroy, destroy}}, pos};
-
+use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS, BoatMap, ShotMap}, boat::{Boat, BOATS}, Pos, player::destroy::{valid_boat_pos, valid_shot, random_destroy, destroy}}, pos};
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     let horizontal: bool = random();
@@ -30,7 +29,7 @@ fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     )
 }
 
-fn random_valid_boat_pos(boats: &[[Boat; NUM_ROWS]; NUM_COLS], boat: Boat) -> (bool, Pos) {
+fn random_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
     let (mut horizontal, mut pos) = random_boat_pos(boat);
 
     while !valid_boat_pos(boats, boat, horizontal, pos) {
@@ -40,22 +39,24 @@ fn random_valid_boat_pos(boats: &[[Boat; NUM_ROWS]; NUM_COLS], boat: Boat) -> (b
     (horizontal, pos)
 }
 
-fn place_boat(boats: &mut [[Boat; NUM_ROWS]; NUM_COLS], boat: Boat) {
+fn place_boat(boats: &mut BoatMap, boat: Boat) {
     let (horizontal, pos) = random_valid_boat_pos(boats, boat);
 
     if horizontal {
         for x_off in 0..boat.length() {
+            debug_assert!(boats[pos.x + x_off][pos.y].is_empty());
             boats[pos.x + x_off][pos.y] = boat;
         }
     }
     else {
         for y_off in 0..boat.length() {
+            debug_assert!(boats[pos.x][pos.y + y_off].is_empty());
             boats[pos.x][pos.y + y_off] = boat;
         }
     }
 }
 
-pub fn place() -> [[Boat; NUM_ROWS]; NUM_COLS] {
+pub fn place() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
@@ -65,7 +66,7 @@ pub fn place() -> [[Boat; NUM_ROWS]; NUM_COLS] {
     boats
 }
 
-pub fn find(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+pub fn find(shots: ShotMap) -> Pos {
     let mut rng = rand::thread_rng();
 
     let (mut x, mut y) = (
@@ -83,7 +84,7 @@ pub fn find(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
     pos!(x, y)
 }
 
-pub fn find_and_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+pub fn find_and_destroy(shots: ShotMap) -> Pos {
     if let Some(pos) = random_destroy(shots) {
         pos
     } else {
@@ -91,7 +92,7 @@ pub fn find_and_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
     }
 }
 
-pub fn find_and_smart_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+pub fn find_and_smart_destroy(shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
