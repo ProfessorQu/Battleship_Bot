@@ -2,36 +2,12 @@ use std::vec;
 
 use rand::seq::SliceRandom;
 
-use crate::battleship::{constants::{NUM_ROWS, NUM_COLS, BOATS, Boat, OFFSETS}, game::Shot};
+use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
 
 const LENGTHS: [usize; 5] = [2, 3, 3, 4, 5];
 
 pub fn length(boat: Boat) -> usize {
     LENGTHS[boat as usize - 1]
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Pos {
-    pub x: usize,
-    pub y: usize
-}
-
-impl Pos {
-    pub fn new(x: usize, y: usize) -> Self {
-        Self {
-            x, y
-        }
-    }
-}
-
-#[macro_export]
-macro_rules! pos {
-    ($t:expr) => {
-        Pos::new($t.0, $t.1)
-    };
-    ($x:expr, $y:expr) => {
-        Pos::new($x, $y)
-    };
 }
 
 pub fn valid_boat_pos(
@@ -148,7 +124,7 @@ fn get_hits(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Vec<(Boat, usize, us
     hits
 }
 
-pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+pub fn random_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
     let hits = get_hits(shots);
 
     for boat in BOATS {
@@ -172,7 +148,7 @@ pub fn random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> 
     None
 }
 
-pub fn focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
+pub fn destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
     let hits = get_hits(shots);
 
     for boat in BOATS {
@@ -186,14 +162,14 @@ pub fn focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Option<Pos> {
 
         let hits_len = boat_hits.clone().count();
 
-        if hits_len > 1 && hits_len < length(boat) {
+        if hits_len > 0 && hits_len < length(boat) {
             let boat_hits_vec: Vec<Pos> = boat_hits.collect();
 
-            return offset_shoot_pos(shots, boat_hits_vec);
-        } else if hits_len > 0 && hits_len < length(boat) {
-            let boat_hits_vec: Vec<Pos> = boat_hits.collect();
-
-            return random_offset_shoot_pos(shots, boat_hits_vec)
+            if hits_len > 1 {
+                return offset_shoot_pos(shots, boat_hits_vec);
+            } else {
+                return random_offset_shoot_pos(shots, boat_hits_vec)
+            }
         }
     }
 

@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use crate::battleship::players::utils::valid_shot;
+use crate::battleship::players::destroy::valid_shot;
 
-use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS, Boat}, players::utils::Pos};
+use super::{constants::{NUM_ROWS, NUM_COLS, MIN_SHOTS}, boat::Boat, Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {

@@ -12,8 +12,8 @@ fn main() {
         players::random::place,
         players::random::place,
 
-        players::random::shoot_and_random_focus,
-        players::random::shoot_and_focus,
+        players::random::find_and_destroy,
+        players::random::find_and_smart_destroy,
     );
 
     let now = SystemTime::now();

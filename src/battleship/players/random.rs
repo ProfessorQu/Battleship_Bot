@@ -1,8 +1,8 @@
 use rand::{random, Rng};
 
-use crate::{battleship::{constants::{BOATS, NUM_COLS, NUM_ROWS, Boat}, game::Shot}, pos};
+use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS}, game::Shot, boat::{Boat, BOATS}, Pos}, pos};
 
-use super::utils::{valid_boat_pos, valid_shot, length, random_focus, Pos, focus};
+use super::destroy::{valid_boat_pos, valid_shot, length, random_destroy, destroy};
 
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
@@ -67,7 +67,7 @@ pub fn place() -> [[Boat; NUM_ROWS]; NUM_COLS] {
     boats
 }
 
-pub fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+pub fn find(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
     let mut rng = rand::thread_rng();
 
     let (mut x, mut y) = (
@@ -85,18 +85,18 @@ pub fn shoot(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
     pos!(x, y)
 }
 
-pub fn shoot_and_random_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
-    if let Some(pos) = random_focus(shots) {
+pub fn find_and_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+    if let Some(pos) = random_destroy(shots) {
         pos
     } else {
-        shoot(shots)
+        find(shots)
     }
 }
 
-pub fn shoot_and_focus(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
-    if let Some(pos) = focus(shots) {
+pub fn find_and_smart_destroy(shots: [[Option<Shot>; NUM_ROWS]; NUM_COLS]) -> Pos {
+    if let Some(pos) = destroy(shots) {
         pos
     } else {
-        shoot(shots)
+        find(shots)
     }
 }
