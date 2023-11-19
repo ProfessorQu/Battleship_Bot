@@ -9,5 +9,5 @@ pub mod boat;
 pub mod player;
 pub use player::players;
 
-mod pos;
-pub use pos::Pos;
+mod position;
+pub use position::Pos;

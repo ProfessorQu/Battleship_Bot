@@ -1,7 +1,7 @@
 use rand::Rng;
 
 use crate::pos;
-use crate::battleship::pos::Pos;
+use crate::battleship::position::Pos;
 use crate::battleship::boat::{Boat, BOATS};
 use crate::battleship::constants::{NUM_COLS, NUM_ROWS, BoatMap};
 

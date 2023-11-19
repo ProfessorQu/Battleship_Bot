@@ -2,9 +2,10 @@ use std::sync::RwLock;
 use rand::Rng;
 
 use lazy_static::lazy_static;
+use rand::seq::SliceRandom;
 
 use crate::pos;
-use crate::battleship::boat::BOATS;
+use crate::battleship::boat::{BOATS, Boat};
 use crate::battleship::{Pos, Player};
 use crate::battleship::player::utils::get_hits;
 use crate::battleship::constants::{NUM_COLS, NUM_ROWS, ShotMap};
@@ -76,7 +77,7 @@ fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
 
     let mut position = last_pos.to_owned();
 
-    let mut iterations = 0;
+    let mut has_reset = false;
     while !valid_shot(shots, position) {
         position.x += min_len;
         
@@ -92,14 +93,13 @@ fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
         }
 
         if position.y >= NUM_ROWS {
-            position = pos!(0, 0);
+            if has_reset {
+                position = random_find(shots);
+            } else {
+                position = pos!(0, 0);
+                has_reset = true;
+            }
         }
-
-        if iterations > 100 {
-            return random_find(shots)
-        }
-
-        iterations += 1;
     }
 
     *last_pos = position;
@@ -123,5 +123,94 @@ pub fn grid_find_and_destroy(player: Player, shots: ShotMap) -> Pos {
         *pos_lock = last_pos;
 
         result
+    }
+}
+
+fn update_heatmap(heatmap: &mut [[usize; NUM_ROWS]; NUM_COLS], shots: ShotMap, boat: Boat, horizontal: bool, pos: Pos) {
+    let mut overlaps = false;
+
+    if horizontal {
+        for x_off in 0..boat.length() {
+            if  shots[pos.x + x_off][pos.y].is_some() {
+                overlaps = true;
+                break;
+            }
+        }
+    } else {
+        for y_off in 0..boat.length() {
+            if shots[pos.x][pos.y + y_off].is_some() {
+                overlaps = true;
+                break;
+            }
+        }
+    }
+
+    if overlaps {
+        return
+    }
+
+    if horizontal {
+        for x_off in 0..boat.length() {
+            heatmap[pos.x + x_off][pos.y] += 1;
+        }
+    } else {
+        for y_off in 0..boat.length() {
+            heatmap[pos.x][pos.y + y_off] += 1;
+        }
+    }
+}
+
+fn create_heatmap(shots: ShotMap) -> [[usize; NUM_ROWS]; NUM_COLS] {
+    let mut heatmap = [[0; NUM_ROWS]; NUM_COLS];
+
+    for boat in BOATS {
+        for x in 0..NUM_COLS - boat.length() {
+            for y in 0..NUM_ROWS {
+                update_heatmap(&mut heatmap, shots, boat, true, pos!(x, y));
+            }
+        }
+
+        for x in 0..NUM_COLS {
+            for y in 0..NUM_ROWS - boat.length() {
+                update_heatmap(&mut heatmap, shots, boat, false, pos!(x, y));
+            }
+        }
+    }
+
+    heatmap
+}
+
+fn heatmap_find(shots: ShotMap) -> Pos {
+    let heatmap = create_heatmap(shots);
+
+    let max = heatmap
+        .iter().map(
+            |row| row.iter().max().expect("No maximum in row")
+        ).max().expect("No maximum in heatmap");
+
+    let mut possible_positions = vec![];
+
+    for (x, row) in heatmap.iter().enumerate() {
+        for (y, heat) in row.iter().enumerate() {
+            if heat == max {
+                possible_positions.push(pos!(x, y));
+            }
+        }
+    }
+
+    let mut pos = *possible_positions.choose(&mut rand::thread_rng()).expect("Failed to choose random");
+
+    while !valid_shot(shots, pos) {
+        pos = *possible_positions.choose(&mut rand::thread_rng()).expect("Failed to choose random");
+    }
+
+    pos
+}
+
+pub fn heatmap_find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+    if let Some(pos) = destroy(shots) {
+        pos
+    } else {
+        heatmap_find(shots)
     }
 }

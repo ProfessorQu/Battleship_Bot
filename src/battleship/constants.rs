@@ -26,6 +26,7 @@ lazy_static!(
         ("Randshot+randdestr".to_string(), shoot::random_find_and_random_destroy),
         ("Randshot+destr".to_string(), shoot::random_find_and_destroy),
         ("Gridshot+destr".to_string(), shoot::grid_find_and_destroy),
+        ("Heatshot+destr".to_string(), shoot::heatmap_find_and_destroy)
     ];
 
     pub static ref PLACE_FNS: Vec<(String, PlaceFn)> = vec![
