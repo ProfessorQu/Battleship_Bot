@@ -176,3 +176,41 @@ pub fn place_boats_spread() -> BoatMap {
 
     boats
 }
+
+fn cluster_boat_pos(boat: Boat) -> (bool, Pos) {
+    let horizontal: bool = rand::random();
+    let length = boat.length();
+
+    let (x_range, y_range) = if horizontal {
+        (
+            NUM_COLS / 4 - 1..((NUM_COLS * 3) / 4 - length),
+            NUM_ROWS / 4 - 1..NUM_ROWS * 3 / 4
+        )
+    } else {
+        (
+            NUM_COLS / 4 - 1..NUM_COLS * 3 / 4,
+            NUM_ROWS / 4 - 1..((NUM_ROWS * 3) / 4 - length)
+        )
+    };
+
+    let mut rng = rand::thread_rng();
+    
+    (
+        horizontal,
+        pos!( 
+            rng.gen_range(x_range),
+            rng.gen_range(y_range)
+        )
+    )
+}
+
+pub fn place_boats_cluster() -> BoatMap {
+    let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
+
+    for boat in BOATS {
+        let (horizontal, pos) = valid_boat_pos(&boats, boat, cluster_boat_pos);
+        place_boat(&mut boats, boat, horizontal, pos);
+    }
+
+    boats
+}

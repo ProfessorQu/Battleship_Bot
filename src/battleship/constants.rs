@@ -32,6 +32,7 @@ lazy_static!(
     pub static ref PLACE_FNS: Vec<(String, PlaceFn)> = vec![
         ("Randplace".to_string(), place::place_boats_random),
         ("Sideplace".to_string(), place::place_boats_sides),
-        ("Spreadplace".to_string(), place::place_boats_spread)
+        ("Spreadplace".to_string(), place::place_boats_spread),
+        ("Clusterplace".to_string(), place::place_boats_cluster)
     ];
 );
