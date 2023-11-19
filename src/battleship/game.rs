@@ -4,7 +4,7 @@ use std::io::Write;
 use crate::battleship::player::destroy::valid_shot;
 
 use super::constants::PLACE_FNS;
-use super::{constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS}, boat::{Boat, BOATS}, Pos, players};
+use super::{constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS}, boat::{Boat, BOATS}, Pos};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -111,12 +111,6 @@ impl Battleship {
         debug_assert!(valid_shot(self.get_shots(self.current_player), pos));
 
         self.shoot(self.current_player, pos);
-
-        // if matches!(self.current_player, Player::P2) {
-        //     println!("Shot at {:?} is {:?}", pos, self.get_shots(Player::P2)[pos.x][pos.y]);
-        //     println!("P2 Shots ====================");
-        //     self.show_shots(Player::P2);
-        // }
 
         self.current_player = self.current_player.opponent();
     }

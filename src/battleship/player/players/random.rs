@@ -133,6 +133,67 @@ pub fn place_boats_sides() -> BoatMap {
     boats
 }
 
+fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
+    if matches!(boat, Boat::Carrier) {
+        return random_boat_pos(boat);
+    }
+
+    let horizontal: bool = rand::random();
+
+    let mut rng = rand::thread_rng();
+
+    let length = boat.length();
+    let id = boat as usize;
+
+    let x_range = if id % 2 == 1 && horizontal {
+        0..NUM_COLS / 2 - length
+    } else if id % 2 == 1 {
+        0..NUM_COLS / 2
+    } else if id % 2 == 0 && horizontal {
+        (NUM_COLS / 2 - 1)..NUM_COLS - 1 - length
+    } else {
+        (NUM_COLS / 2)..NUM_COLS - 1
+    };
+
+    let y_range = if id <= 2 && horizontal {
+        0..NUM_ROWS / 2
+    } else if id <= 2 {
+        0..NUM_ROWS / 2 - length
+    } else if id > 2 && horizontal {
+        (NUM_ROWS / 2)..NUM_ROWS - 1
+    } else {
+        (NUM_ROWS / 2 - 1)..NUM_ROWS - 1 - length
+    };
+
+    let (x, y) = (
+        rng.gen_range(x_range),
+        rng.gen_range(y_range)
+    );
+
+    (horizontal, pos!(x, y))
+}
+
+fn spread_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
+    let (mut horizontal, mut pos) = spread_boat_pos(boat);
+
+    while overlaps(boats, boat, horizontal, pos) {
+        (horizontal, pos) = spread_boat_pos(boat);
+    }
+
+    (horizontal, pos)
+}
+
+pub fn place_boats_spread() -> BoatMap {
+    let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
+
+    for boat in BOATS {
+        let (horizontal, pos) = spread_valid_boat_pos(&boats, boat);
+        place_boat(&mut boats, boat, horizontal, pos);
+    }
+
+    boats
+}
+
 pub fn find(shots: ShotMap) -> Pos {
     let mut rng = rand::thread_rng();
 

@@ -22,14 +22,15 @@ pub type ShotMap = [[Option<Shot>; NUM_ROWS]; NUM_COLS];
 
 lazy_static!(
     pub static ref SHOOT_FNS: Vec<(String, ShootFn)> = vec![
-        ("Random shoot".to_string(), random::shoot),
-        ("Random shoot + random destroy".to_string(), random::find_and_random_destroy),
-        ("Random shoot + destroy".to_string(), random::find_and_destroy),
-        ("Grid shoot + destroy".to_string(), grid::find_and_destroy),
+        ("Randshot".to_string(), random::shoot),
+        ("Randshot+randdestr".to_string(), random::find_and_random_destroy),
+        ("Randshot+destr".to_string(), random::find_and_destroy),
+        ("Gridshot+destr".to_string(), grid::find_and_destroy),
     ];
 
     pub static ref PLACE_FNS: Vec<(String, PlaceFn)> = vec![
-        ("Random place".to_string(), random::place_boats_random),
-        ("Sides place".to_string(), random::place_boats_sides),
+        ("Randplace".to_string(), random::place_boats_random),
+        ("Sideplace".to_string(), random::place_boats_sides),
+        ("Spreadplace".to_string(), random::place_boats_spread)
     ];
 );

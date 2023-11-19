@@ -11,7 +11,7 @@ use battleship::players;
 fn main() {
     // let mut battleship = Battleship::new(
     //     players::random::place_boats_random,
-    //     players::random::place_boats_sides,
+    //     players::random::place_boats_random,
 
     //     players::random::find_and_destroy,
     //     players::grid::find_and_destroy,
