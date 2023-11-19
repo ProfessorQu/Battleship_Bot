@@ -1,17 +1,59 @@
 use std::sync::RwLock;
-
-use crate::{battleship::{constants::{ShotMap, NUM_COLS, NUM_ROWS}, player::{destroy::{valid_shot, destroy}, utils::get_hits}, Pos, boat::BOATS, Player}, pos};
+use rand::Rng;
 
 use lazy_static::lazy_static;
 
-use super::random;
+use crate::pos;
+use crate::battleship::boat::BOATS;
+use crate::battleship::{Pos, Player};
+use crate::battleship::player::utils::get_hits;
+use crate::battleship::constants::{NUM_COLS, NUM_ROWS, ShotMap};
+use crate::battleship::player::destroy::{valid_shot, destroy, random_destroy};
+
+pub fn random_find(shots: ShotMap) -> Pos {
+    let mut rng = rand::thread_rng();
+
+    let (mut x, mut y) = (
+        rng.gen_range(0..NUM_COLS),
+        rng.gen_range(0..NUM_ROWS),
+    );
+
+    while !valid_shot(shots, pos!(x, y)) {
+        (x, y) = (
+            rng.gen_range(0..NUM_COLS),
+            rng.gen_range(0..NUM_ROWS),
+        );
+    }
+
+    pos!(x, y)
+}
+
+pub fn random_shoot(_player: Player, shots: ShotMap) -> Pos {
+    random_find(shots)
+}
+
+pub fn random_find_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
+    if let Some(pos) = random_destroy(shots) {
+        pos
+    } else {
+        random_find(shots)
+    }
+}
+
+pub fn random_find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+    if let Some(pos) = destroy(shots) {
+        pos
+    } else {
+        random_find(shots)
+    }
+}
 
 lazy_static!(
     static ref LAST_POS_P1: RwLock<Pos> = RwLock::new(Pos::new(0, 0));
     static ref LAST_POS_P2: RwLock<Pos> = RwLock::new(Pos::new(0, 0));
 );
 
-fn find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
+fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
     if shots[0][0].is_none() {
         return pos!(0, 0)
     }
@@ -54,7 +96,7 @@ fn find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
         }
 
         if iterations > 100 {
-            return random::find(shots)
+            return random_find(shots)
         }
 
         iterations += 1;
@@ -65,7 +107,7 @@ fn find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
     position
 }
 
-pub fn find_and_destroy(player: Player, shots: ShotMap) -> Pos {
+pub fn grid_find_and_destroy(player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
@@ -76,7 +118,7 @@ pub fn find_and_destroy(player: Player, shots: ShotMap) -> Pos {
 
         let mut last_pos = pos_lock.to_owned();
 
-        let result = find(shots, &mut last_pos);
+        let result = grid_find(shots, &mut last_pos);
 
         *pos_lock = last_pos;
 

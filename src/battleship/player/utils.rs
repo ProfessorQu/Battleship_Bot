@@ -1,4 +1,6 @@
-use crate::battleship::{constants::ShotMap, boat::Boat, game::Shot};
+use crate::battleship::boat::Boat;
+use crate::battleship::game::Shot;
+use crate::battleship::constants::ShotMap;
 
 pub fn get_hits(shots: ShotMap) -> Vec<(Boat, usize, usize)> {
     let mut hits = vec![];

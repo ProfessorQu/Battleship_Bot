@@ -1,8 +1,10 @@
 use std::vec;
-
 use rand::seq::SliceRandom;
 
-use crate::{battleship::{constants::{NUM_ROWS, NUM_COLS, OFFSETS, ShotMap}, boat::BOATS, Pos}, pos};
+use crate::pos;
+use crate::battleship::Pos;
+use crate::battleship::boat::BOATS;
+use crate::battleship::constants::{NUM_ROWS, NUM_COLS, OFFSETS, ShotMap};
 
 use super::utils::get_hits;
 

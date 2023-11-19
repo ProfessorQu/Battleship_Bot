@@ -3,8 +3,9 @@ use std::io::Write;
 
 use crate::battleship::player::destroy::valid_shot;
 
-use super::constants::PLACE_FNS;
-use super::{constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS}, boat::{Boat, BOATS}, Pos};
+use super::Pos;
+use super::boat::{Boat, BOATS};
+use super::constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS, PLACE_FNS};
 
 #[derive(Clone, Copy)]
 pub enum Shot {

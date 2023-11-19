@@ -1,6 +1,9 @@
 use rand::Rng;
 
-use crate::{battleship::{constants::{NUM_COLS, NUM_ROWS, BoatMap, ShotMap}, boat::{Boat, BOATS}, Pos, player::destroy::{valid_shot, random_destroy, destroy}, Player}, pos};
+use crate::pos;
+use crate::battleship::pos::Pos;
+use crate::battleship::boat::{Boat, BOATS};
+use crate::battleship::constants::{NUM_COLS, NUM_ROWS, BoatMap};
 
 fn overlaps(
     boats: &BoatMap,
@@ -56,16 +59,6 @@ fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     )
 }
 
-fn random_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
-    let (mut horizontal, mut pos) = random_boat_pos(boat);
-
-    while overlaps(boats, boat, horizontal, pos) {
-        (horizontal, pos) = random_boat_pos(boat);
-    }
-
-    (horizontal, pos)
-}
-
 fn place_boat(boats: &mut BoatMap, boat: Boat, horizontal: bool, pos: Pos) {
     if horizontal {
         for x_off in 0..boat.length() {
@@ -85,7 +78,7 @@ pub fn place_boats_random() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
-        let (horizontal, pos) = random_valid_boat_pos(&boats, boat);
+        let (horizontal, pos) = valid_boat_pos(&boats, boat, random_boat_pos);
         place_boat(&mut boats, boat, horizontal, pos);
     }
 
@@ -112,21 +105,11 @@ fn side_boat_pos(boat: Boat) -> (bool, Pos) {
     (horizontal, pos!(x, y))
 }
 
-fn side_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
-    let (mut horizontal, mut pos) = side_boat_pos(boat);
-
-    while overlaps(boats, boat, horizontal, pos) {
-        (horizontal, pos) = side_boat_pos(boat);
-    }
-
-    (horizontal, pos)
-}
-
 pub fn place_boats_sides() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
-        let (horizontal, pos) = side_valid_boat_pos(&boats, boat);
+        let (horizontal, pos) = valid_boat_pos(&boats, boat, side_boat_pos);
         place_boat(&mut boats, boat, horizontal, pos);
     }
 
@@ -173,61 +156,23 @@ fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
     (horizontal, pos!(x, y))
 }
 
-fn spread_valid_boat_pos(boats: &BoatMap, boat: Boat) -> (bool, Pos) {
-    let (mut horizontal, mut pos) = spread_boat_pos(boat);
+fn valid_boat_pos(boats: &BoatMap, boat: Boat, get_boat_pos: fn(Boat) -> (bool, Pos)) -> (bool, Pos) {
+    let mut boat_pos = get_boat_pos(boat);
 
-    while overlaps(boats, boat, horizontal, pos) {
-        (horizontal, pos) = spread_boat_pos(boat);
+    while overlaps(boats, boat, boat_pos.0, boat_pos.1) {
+        boat_pos = get_boat_pos(boat);
     }
 
-    (horizontal, pos)
+    boat_pos
 }
 
 pub fn place_boats_spread() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
-        let (horizontal, pos) = spread_valid_boat_pos(&boats, boat);
+        let (horizontal, pos) = valid_boat_pos(&boats, boat, spread_boat_pos);
         place_boat(&mut boats, boat, horizontal, pos);
     }
 
     boats
-}
-
-pub fn find(shots: ShotMap) -> Pos {
-    let mut rng = rand::thread_rng();
-
-    let (mut x, mut y) = (
-        rng.gen_range(0..NUM_COLS),
-        rng.gen_range(0..NUM_ROWS),
-    );
-
-    while !valid_shot(shots, pos!(x, y)) {
-        (x, y) = (
-            rng.gen_range(0..NUM_COLS),
-            rng.gen_range(0..NUM_ROWS),
-        );
-    }
-
-    pos!(x, y)
-}
-
-pub fn shoot(_player: Player, shots: ShotMap) -> Pos {
-    find(shots)
-}
-
-pub fn find_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
-    if let Some(pos) = random_destroy(shots) {
-        pos
-    } else {
-        find(shots)
-    }
-}
-
-pub fn find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
-    if let Some(pos) = destroy(shots) {
-        pos
-    } else {
-        find(shots)
-    }
 }
