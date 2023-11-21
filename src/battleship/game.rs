@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::{fmt::Debug, fs::File};
 use std::io::Write;
 
@@ -22,7 +23,16 @@ impl Debug for Shot {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Display for Shot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Hit(boat) => write!(f, "{}", boat),
+            Self::Miss => write!(f, "M")
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Player {
     P1,
     P2
@@ -57,7 +67,7 @@ pub struct Battleship {
 impl Battleship {
     pub fn new(
         player1_place_fn: PlaceFn, player2_place_fn: PlaceFn,
-        player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn
+        player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn,
     ) -> Self {
         Self {
             current_player: Player::P1,
@@ -116,7 +126,7 @@ impl Battleship {
         self.current_player = self.current_player.opponent();
     }
 
-    fn reset(&mut self) {
+    pub fn reset(&mut self) {
         self.player1_boats = (self.player1_place_fn)();
         self.player2_boats = (self.player2_place_fn)();
 
@@ -262,7 +272,7 @@ impl Battleship {
         println!("{}", "-".repeat(shots.len() * 3 + 2));
     }
 
-    fn winner(&self) -> Option<Player> {
+    pub fn winner(&self) -> Option<Player> {
         let mut player1_hits = 0;
         let mut player2_hits = 0;
 
@@ -310,5 +320,27 @@ impl Battleship {
         self.show_shots(Player::P1);
 
         println!("{:?} won", winner.expect("Noone won"))
+    }
+
+    pub fn play_and_record_game(&mut self) -> (Vec<ShotMap>, Vec<ShotMap>) {
+        let mut player1_shots = vec![];
+        let mut player2_shots = vec![];
+
+        let mut winner = None;
+        self.reset();
+
+        while winner.is_none() {
+            let player = self.current_player;
+            self.step();
+
+            match player {
+                Player::P1 => player1_shots.push(self.get_shots(Player::P1)),
+                Player::P2 => player2_shots.push(self.get_shots(Player::P2)),
+            }
+
+            winner = self.winner();
+        }
+
+        (player1_shots, player2_shots)
     }
 }

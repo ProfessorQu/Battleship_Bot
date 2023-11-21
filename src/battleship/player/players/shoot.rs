@@ -11,7 +11,7 @@ use crate::battleship::player::utils::get_hits;
 use crate::battleship::constants::{NUM_COLS, NUM_ROWS, ShotMap};
 use crate::battleship::player::destroy::{valid_shot, destroy, random_destroy};
 
-pub fn random_find(shots: ShotMap) -> Pos {
+fn random_find(shots: ShotMap) -> Pos {
     let mut rng = rand::thread_rng();
 
     let (mut x, mut y) = (
