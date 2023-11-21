@@ -5,7 +5,7 @@ use crate::battleship::player::destroy::valid_shot;
 
 use super::Pos;
 use super::boat::{Boat, BOATS};
-use super::constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS, PLACE_FNS};
+use super::constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS, PLACE_FNS, FNS};
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -176,35 +176,37 @@ impl Battleship {
 
         writeln!(file).expect("Failed to write to file");
 
-        for (p1_place_fn_name, p1_place_fn) in PLACE_FNS.iter() {
-            for (p1_shoot_fn_name, p1_shoot_fn) in SHOOT_FNS.iter() {
-                let mut winrates = vec![];
+        for (
+            (p1_place_fn_name, p1_place_fn),
+            (p1_shoot_fn_name, p1_shoot_fn)
+        ) in FNS.iter() {
+            let mut winrates = vec![];
 
-                for (_, p2_place_fn) in PLACE_FNS.iter() {
-                    for (_, p2_shoot_fn) in SHOOT_FNS.iter() {
-                        let mut battleship = Battleship::new(
-                            *p1_place_fn,
-                            *p2_place_fn,
+            for (
+                (_, p2_place_fn),
+                (_, p2_shoot_fn)
+                ) in FNS.iter() {
+                let mut battleship = Battleship::new(
+                    *p1_place_fn,
+                    *p2_place_fn,
 
-                            *p1_shoot_fn,
-                            *p2_shoot_fn,
-                        );
+                    *p1_shoot_fn,
+                    *p2_shoot_fn,
+                );
 
-                        let (p1_wins, _) = battleship.play_games(games_per_fn);
-                        let p1_winrate = p1_wins as f32 / games_per_fn as f32 * 100.0;
+                let (p1_wins, _) = battleship.play_games(games_per_fn);
+                let p1_winrate = p1_wins as f32 / games_per_fn as f32 * 100.0;
 
-                        winrates.push(p1_winrate);
-                    }
-                }
-
-                println!("Writing {}, {}...", p1_shoot_fn_name, p1_place_fn_name);
-
-                write!(file, "{},{}", p1_shoot_fn_name, p1_place_fn_name).expect("Failed to write to file");
-                for winrate in winrates {
-                    write!(file, ",{:.1}", winrate).expect("Failed to write to file");
-                }
-                writeln!(file).expect("Failed to write to file");
+                winrates.push(p1_winrate);
             }
+
+            println!("Writing {}, {}...", p1_shoot_fn_name, p1_place_fn_name);
+
+            write!(file, "{},{}", p1_shoot_fn_name, p1_place_fn_name).expect("Failed to write to file");
+            for winrate in winrates {
+                write!(file, ",{:.1}", winrate).expect("Failed to write to file");
+            }
+            writeln!(file).expect("Failed to write to file");
         }
     }
 

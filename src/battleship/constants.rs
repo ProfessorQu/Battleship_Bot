@@ -35,4 +35,7 @@ lazy_static!(
         ("Spreadplace".to_string(), place::place_boats_spread),
         ("Clusterplace".to_string(), place::place_boats_cluster)
     ];
+
+    pub static ref FNS: Vec<((String, PlaceFn), (String, ShootFn))> = PLACE_FNS
+        .iter().zip(SHOOT_FNS.iter()).map(|item| (item.0.clone(), item.1.clone())).collect();
 );
