@@ -47,6 +47,54 @@ impl Player {
     }
 }
 
+pub struct Recording {
+    pub player1_boats: BoatMap,
+    pub player2_boats: BoatMap,
+
+    pub player1_shots: Vec<ShotMap>,
+    pub player2_shots: Vec<ShotMap>,
+
+    pub all_shots: Vec<ShotMap>,
+}
+
+impl Recording {
+    fn new(
+        player1_boats: BoatMap,
+        player2_boats: BoatMap,
+
+        player1_shots: Vec<ShotMap>,
+        player2_shots: Vec<ShotMap>,
+    ) -> Self {
+        let all_shots = Recording::get_all_shots(
+            &player1_shots,
+            &player2_shots
+        );
+
+        Self {
+            player1_boats,
+            player2_boats,
+
+            player1_shots,
+            player2_shots,
+
+            all_shots
+        }
+    }
+
+    fn get_all_shots(player1_shots: &Vec<ShotMap>, player2_shots: &Vec<ShotMap>) -> Vec<ShotMap> {
+        let mut all_shots = vec![];
+
+        for i in 0..player1_shots.len() {
+            all_shots.push(player1_shots[i]);
+            if i < player2_shots.len() {
+                all_shots.push(player2_shots[i]);
+            }
+        }
+
+        all_shots
+    }
+}
+
 pub struct Battleship {
     current_player: Player,
     min_shots: usize,
@@ -322,7 +370,7 @@ impl Battleship {
         println!("{:?} won", winner.expect("Noone won"))
     }
 
-    pub fn play_and_record_game(&mut self) -> (Vec<ShotMap>, Vec<ShotMap>) {
+    pub fn play_and_record_game(&mut self) -> Recording {
         let mut player1_shots = vec![];
         let mut player2_shots = vec![];
 
@@ -341,6 +389,12 @@ impl Battleship {
             winner = self.winner();
         }
 
-        (player1_shots, player2_shots)
+        Recording::new(
+            self.get_boats(Player::P1),
+            self.get_boats(Player::P2),
+            
+            player1_shots,
+            player2_shots
+        )
     }
 }
