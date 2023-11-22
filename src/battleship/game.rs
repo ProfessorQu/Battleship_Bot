@@ -2,11 +2,11 @@ use std::fmt::Display;
 use std::{fmt::Debug, fs::File};
 use std::io::Write;
 
-use crate::battleship::player::destroy::valid_shot;
+use crate::player::destroy::valid_shot;
 
-use super::Pos;
 use super::boat::{Boat, BOATS};
 use super::constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn, SHOOT_FNS, PLACE_FNS, FNS};
+use super::position::Pos;
 
 #[derive(Clone, Copy)]
 pub enum Shot {
@@ -47,6 +47,12 @@ impl Player {
     }
 }
 
+impl Display for Player {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 pub struct Recording {
     pub player1_boats: BoatMap,
     pub player2_boats: BoatMap,
@@ -55,6 +61,8 @@ pub struct Recording {
     pub player2_shots: Vec<ShotMap>,
 
     pub all_shots: Vec<ShotMap>,
+
+    pub winner: Player
 }
 
 impl Recording {
@@ -64,6 +72,8 @@ impl Recording {
 
         player1_shots: Vec<ShotMap>,
         player2_shots: Vec<ShotMap>,
+
+        winner: Player
     ) -> Self {
         let all_shots = Recording::get_all_shots(
             &player1_shots,
@@ -77,7 +87,9 @@ impl Recording {
             player1_shots,
             player2_shots,
 
-            all_shots
+            all_shots,
+            
+            winner
         }
     }
 
@@ -394,7 +406,9 @@ impl Battleship {
             self.get_boats(Player::P2),
             
             player1_shots,
-            player2_shots
+            player2_shots,
+
+            winner.expect("No player won?")
         )
     }
 }

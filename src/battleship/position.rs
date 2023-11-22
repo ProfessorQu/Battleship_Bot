@@ -13,6 +13,7 @@ impl Pos {
 }
 
 #[macro_export]
+#[doc(hidden)]
 macro_rules! pos {
     ($t:expr) => {
         Pos::new($t.0, $t.1)

@@ -1,7 +1,10 @@
 use lazy_static::lazy_static;
 
-use super::{boat::Boat, game::Shot, Player, Pos};
-use super::players::{place, shoot};
+use crate::battleship::{boat::Boat, game::Shot};
+use crate::player::players::{place, shoot};
+
+use super::game::Player;
+use super::position::Pos;
 
 pub const NUM_ROWS: usize = 10;
 pub const NUM_COLS: usize = 10;
@@ -22,18 +25,18 @@ pub type ShotMap = [[Option<Shot>; NUM_ROWS]; NUM_COLS];
 
 lazy_static!(
     pub static ref SHOOT_FNS: Vec<(String, ShootFn)> = vec![
-        ("Randshot".to_string(), shoot::random_shoot),
-        ("Randshot+randdestr".to_string(), shoot::random_find_and_random_destroy),
-        ("Randshot+destr".to_string(), shoot::random_find_and_destroy),
-        ("Gridshot+destr".to_string(), shoot::grid_find_and_destroy),
-        ("Heatshot+destr".to_string(), shoot::heatmap_find_and_destroy)
+        ("Randshot".to_string(), shoot::random),
+        ("Randshot+randdestr".to_string(), shoot::random_and_random_destroy),
+        ("Randshot+destr".to_string(), shoot::random_and_destroy),
+        ("Gridshot+destr".to_string(), shoot::grid_and_destroy),
+        ("Heatshot+destr".to_string(), shoot::heatmap_and_destroy)
     ];
 
     pub static ref PLACE_FNS: Vec<(String, PlaceFn)> = vec![
-        ("Randplace".to_string(), place::place_boats_random),
-        ("Sideplace".to_string(), place::place_boats_sides),
-        ("Spreadplace".to_string(), place::place_boats_spread),
-        ("Clusterplace".to_string(), place::place_boats_cluster)
+        ("Randplace".to_string(), place::random),
+        ("Sideplace".to_string(), place::sides),
+        ("Spreadplace".to_string(), place::spread),
+        ("Clusterplace".to_string(), place::cluster)
     ];
 
     pub static ref FNS: Vec<((String, PlaceFn), (String, ShootFn))> = PLACE_FNS

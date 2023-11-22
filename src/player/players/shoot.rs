@@ -4,12 +4,13 @@ use rand::Rng;
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 
+use crate::battleship::game::Player;
+use crate::battleship::position::Pos;
+use crate::player::destroy::{valid_shot, random_destroy, destroy};
+use crate::player::utils::get_hits;
 use crate::pos;
 use crate::battleship::boat::{BOATS, Boat};
-use crate::battleship::{Pos, Player};
-use crate::battleship::player::utils::get_hits;
 use crate::battleship::constants::{NUM_COLS, NUM_ROWS, ShotMap};
-use crate::battleship::player::destroy::{valid_shot, destroy, random_destroy};
 
 fn random_find(shots: ShotMap) -> Pos {
     let mut rng = rand::thread_rng();
@@ -29,11 +30,11 @@ fn random_find(shots: ShotMap) -> Pos {
     pos!(x, y)
 }
 
-pub fn random_shoot(_player: Player, shots: ShotMap) -> Pos {
+pub fn random(_player: Player, shots: ShotMap) -> Pos {
     random_find(shots)
 }
 
-pub fn random_find_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
+pub fn random_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = random_destroy(shots) {
         pos
     } else {
@@ -41,7 +42,7 @@ pub fn random_find_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
     }
 }
 
-pub fn random_find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+pub fn random_and_destroy(_player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
@@ -107,7 +108,7 @@ fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
     position
 }
 
-pub fn grid_find_and_destroy(player: Player, shots: ShotMap) -> Pos {
+pub fn grid_and_destroy(player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
@@ -207,7 +208,7 @@ fn heatmap_find(shots: ShotMap) -> Pos {
     pos
 }
 
-pub fn heatmap_find_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+pub fn heatmap_and_destroy(_player: Player, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {

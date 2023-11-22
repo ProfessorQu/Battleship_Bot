@@ -1,5 +1,5 @@
 pub mod players;
 
-pub mod destroy;
+pub (crate) mod destroy;
 
 mod utils;

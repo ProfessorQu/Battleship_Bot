@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2021"
 license-file = "LICENSE"
 description = "The game of battleship and a few bot implementations"
+readme = "README.md"
 repository = "https://github.com/ProfessorQu/Battleship_Bot"
 
 [profile.dev]

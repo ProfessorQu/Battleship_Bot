@@ -74,7 +74,29 @@ fn place_boat(boats: &mut BoatMap, boat: Boat, horizontal: bool, pos: Pos) {
     }
 }
 
-pub fn place_boats_random() -> BoatMap {
+/// Place boats completely randomly
+/// 
+/// Place the boats with a random orientation and position
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::players;
+/// 
+/// let mut battleship = Battleship::new(
+///     players::place::random,
+///     players::place::random,
+/// 
+///     players::shoot::random,
+///     players::shoot::random
+/// );
+/// 
+/// let recording = battleship.play_and_record_game();
+/// 
+/// println!("{} won!", recording.winner);
+/// ````
+pub fn random() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
@@ -105,7 +127,30 @@ fn side_boat_pos(boat: Boat) -> (bool, Pos) {
     (horizontal, pos!(x, y))
 }
 
-pub fn place_boats_sides() -> BoatMap {
+/// Place boats at the sides
+/// 
+/// Place the boats at a random position on the sides
+/// with a possible offset of 1
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::players;
+/// 
+/// let mut battleship = Battleship::new(
+///     players::place::sides,
+///     players::place::sides,
+/// 
+///     players::shoot::random,
+///     players::shoot::random
+/// );
+/// 
+/// let recording = battleship.play_and_record_game();
+/// 
+/// println!("{} won!", recording.winner);
+/// ````
+pub fn sides() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
@@ -166,7 +211,34 @@ fn valid_boat_pos(boats: &BoatMap, boat: Boat, get_boat_pos: fn(Boat) -> (bool, 
     boat_pos
 }
 
-pub fn place_boats_spread() -> BoatMap {
+/// Place boats spread out
+/// 
+/// Place the boats spread out,
+/// The Destroyer (1) will go in the top-left of the board,
+/// The Submarine (2) will go in the top-right,
+/// The Cruiser (3) will go in the bottom-left,
+/// The Battleship (4) will go in the bottom-right,
+/// And the Carrier (5) will go anywhere on the board
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::players;
+/// 
+/// let mut battleship = Battleship::new(
+///     players::place::spread,
+///     players::place::spread,
+/// 
+///     players::shoot::random,
+///     players::shoot::random
+/// );
+/// 
+/// let recording = battleship.play_and_record_game();
+/// 
+/// println!("{} won!", recording.winner);
+/// ````
+pub fn spread() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
@@ -204,7 +276,29 @@ fn cluster_boat_pos(boat: Boat) -> (bool, Pos) {
     )
 }
 
-pub fn place_boats_cluster() -> BoatMap {
+/// Place boats clustered
+/// 
+/// Place the boats all clustered together in the middle
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::players;
+/// 
+/// let mut battleship = Battleship::new(
+///     players::place::cluster,
+///     players::place::cluster,
+/// 
+///     players::shoot::random,
+///     players::shoot::random
+/// );
+/// 
+/// let recording = battleship.play_and_record_game();
+/// 
+/// println!("{} won!", recording.winner);
+/// ````
+pub fn cluster() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
