@@ -34,17 +34,16 @@ fn overlaps(
 
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     let horizontal: bool = rand::random();
-    let length = boat.length();
 
     let (x_range, y_range) = if horizontal {
         (
-            0..(NUM_COLS - length),
+            0..(NUM_COLS - boat.length()),
             0..NUM_ROWS
         )
     } else {
         (
             0..NUM_COLS,
-            0..(NUM_ROWS - length)
+            0..(NUM_ROWS - boat.length())
         )
     };
 
@@ -115,11 +114,11 @@ fn side_boat_pos(boat: Boat) -> (bool, Pos) {
     let (x, y) = if horizontal {
         (
             rng.gen_range(0..NUM_COLS - boat.length()),
-            if rand::random() { rng.gen_range(0..2) } else { NUM_ROWS - 1 }
+            if rand::random() { rng.gen_range(0..2) } else { rng.gen_range(NUM_ROWS - 2..NUM_ROWS) }
         )
     } else {
         (
-            if rand::random() { rng.gen_range(0..2) } else { NUM_COLS - 1 },
+            if rand::random() { rng.gen_range(0..2) } else { rng.gen_range(NUM_COLS - 2..NUM_COLS) },
             rng.gen_range(0..NUM_ROWS - boat.length())
         )
     };
@@ -170,32 +169,34 @@ fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
 
     let mut rng = rand::thread_rng();
 
-    let length = boat.length();
-    let id = boat as usize;
+    let (x_min, mut x_max) = match boat {
+        Boat::Destroyer => (0, NUM_COLS / 2),
+        Boat::Submarine => (NUM_COLS / 2 + 1, NUM_COLS),
+        Boat::Cruiser => (0, NUM_COLS / 2),
+        Boat::Battleship => (NUM_COLS / 2, NUM_COLS),
+        _ => unreachable!()
+    };
+    println!("boat: {}, x_min: {:?}", boat, x_min);
 
-    let x_range = if id % 2 == 1 && horizontal {
-        0..NUM_COLS / 2 - length
-    } else if id % 2 == 1 {
-        0..NUM_COLS / 2
-    } else if id % 2 == 0 && horizontal {
-        (NUM_COLS / 2 - 1)..NUM_COLS - 1 - length
-    } else {
-        (NUM_COLS / 2)..NUM_COLS - 1
+    if horizontal {
+        x_max -= boat.length();
+    }
+
+    let (y_min, mut y_max) = match  boat {
+        Boat::Destroyer => (0, NUM_ROWS / 2),
+        Boat::Submarine => (0, NUM_ROWS / 2),
+        Boat::Cruiser => (NUM_ROWS / 2 + 1, NUM_ROWS),
+        Boat::Battleship => (NUM_ROWS / 2, NUM_ROWS),
+        _ => unreachable!()
     };
 
-    let y_range = if id <= 2 && horizontal {
-        0..NUM_ROWS / 2
-    } else if id <= 2 {
-        0..NUM_ROWS / 2 - length
-    } else if id > 2 && horizontal {
-        (NUM_ROWS / 2)..NUM_ROWS - 1
-    } else {
-        (NUM_ROWS / 2 - 1)..NUM_ROWS - 1 - length
-    };
+    if !horizontal {
+        y_max -= boat.length();
+    }
 
     let (x, y) = (
-        rng.gen_range(x_range),
-        rng.gen_range(y_range)
+        rng.gen_range(x_min..x_max),
+        rng.gen_range(y_min..y_max)
     );
 
     (horizontal, pos!(x, y))
@@ -307,4 +308,140 @@ pub fn cluster() -> BoatMap {
     }
 
     boats
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn one_boat(boat: Boat, pos: Pos, horizontal: bool) -> BoatMap {
+        let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
+
+        place_boat(&mut boats, boat, horizontal, pos);
+
+        boats
+    }
+
+    #[test]
+    fn test_overlaps_horizontal() {
+        let boats = one_boat(Boat::Destroyer, pos!(1, 0), false);
+
+        assert!(overlaps(&boats, Boat::Destroyer, true, pos!(0, 0)));
+        assert!(!overlaps(&boats, Boat::Destroyer, false, pos!(0, 0)));
+        assert!(overlaps(&boats, Boat::Destroyer, true, pos!(0, 1)));
+        assert!(!overlaps(&boats, Boat::Destroyer, true, pos!(0, 2)));
+
+        let boats = one_boat(Boat::Destroyer, pos!(2, 0), false);
+
+        assert!(!overlaps(&boats, Boat::Destroyer, true, pos!(0, 0)));
+        for boat in BOATS {
+            if boat == Boat::Destroyer {
+                continue
+            }
+
+            assert!(overlaps(&boats, boat, true, pos!(0, 0)));
+
+            assert!(!overlaps(&boats, boat, false, pos!(0, 0)));
+        }
+    }
+
+    #[test]
+    fn test_overlaps_vertical() {
+        let boats = one_boat(Boat::Destroyer, pos!(0, 1), true);
+
+        assert!(overlaps(&boats, Boat::Destroyer, false, pos!(0, 0)));
+        assert!(!overlaps(&boats, Boat::Destroyer, true, pos!(0, 0)));
+        assert!(overlaps(&boats, Boat::Destroyer, false, pos!(1, 0)));
+        assert!(!overlaps(&boats, Boat::Destroyer, false, pos!(2, 0)));
+
+        let boats = one_boat(Boat::Destroyer, pos!(0, 2), true);
+
+        assert!(!overlaps(&boats, Boat::Destroyer, false, pos!(0, 0)));
+        for boat in BOATS {
+            if boat == Boat::Destroyer {
+                continue
+            }
+
+            assert!(overlaps(&boats, boat, false, pos!(0, 0)));
+
+            assert!(!overlaps(&boats, boat, true, pos!(0, 0)));
+        }
+    }
+
+    fn is_horizontal(boats: &BoatMap, x: usize, y: usize) -> bool {
+        let boat = boats[x][y];
+        let mut horizontal = false;
+        if x > 0 {
+            horizontal = boats[x - 1][y] == boat;
+        }
+        if x < NUM_COLS - 1 {
+            horizontal = horizontal || boats[x + 1][y] == boat;
+        }
+
+        horizontal
+    }
+
+    fn is_vertical(boats: &BoatMap, x: usize, y: usize) -> bool {
+        let boat = boats[x][y];
+        let mut vertical = false;
+        if y > 0 {
+            vertical = boats[x][y - 1] == boat;
+        }
+        if y < NUM_ROWS - 1 {
+            vertical = vertical || boats[x][y + 1] == boat;
+        }
+
+        vertical
+    }
+
+    #[test]
+    fn test_sides() {
+        for _ in 0..100 {
+            let boats = sides();
+
+            for x in 0..NUM_COLS {
+                for y in 0..NUM_ROWS {
+                    if boats[x][y] != Boat::Empty {
+                        if (2..=7).contains(&x) {
+                            assert!(is_horizontal(&boats, x, y));
+                        }
+                        if (2..=7).contains(&y) {
+                            assert!(is_vertical(&boats, x, y));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_spread() {
+        for _ in 0..100 {
+            let boats = spread();
+
+            for (x, row) in boats.iter().enumerate() {
+                for (y, boat) in row.iter().enumerate() {
+                    match boat {
+                        Boat::Destroyer => {
+                            assert!(x <= 5);
+                            assert!(y <= 5);
+                        }
+                        Boat::Submarine => {
+                            assert!(x >= 6);
+                            assert!(y <= 5);
+                        }
+                        Boat::Cruiser => {
+                            assert!(x <= 5);
+                            assert!(y >= 6);
+                        }
+                        Boat::Battleship => {
+                            assert!(x >= 5);
+                            assert!(y >= 5);
+                        }
+                        _ => ()
+                    }
+                }
+            }
+        }
+    }
 }
