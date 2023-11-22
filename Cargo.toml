@@ -3,7 +3,8 @@ name = "battleship_bot"
 version = "1.0.0"
 edition = "2021"
 license-file = "LICENSE"
-description = ""
+description = "The game of battleship and a few bot implementations"
+repository = "https://github.com/ProfessorQu/Battleship_Bot"
 
 [profile.dev]
 opt-level = 1
