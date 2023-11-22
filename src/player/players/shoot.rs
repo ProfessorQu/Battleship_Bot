@@ -1,10 +1,12 @@
-use std::sync::RwLock;
+//! This is the module for all the shoot functions
+//! 
+//! This module contains all the functions to shoot at the boats.
+//! All functions take a 2d vector to see what shots have been taken and return a new position to fire.
+
 use rand::Rng;
 
-use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 
-use crate::battleship::game::Player;
 use crate::battleship::position::Pos;
 use crate::player::destroy::{valid_shot, random_destroy, destroy};
 use crate::player::utils::get_hits;
@@ -30,11 +32,57 @@ fn random_find(shots: ShotMap) -> Pos {
     pos!(x, y)
 }
 
-pub fn random(_player: Player, shots: ShotMap) -> Pos {
+/// Shoots completely randomly
+/// 
+/// Shoot spaces that aren't shot randomly
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::{shoot, place};
+/// 
+/// let mut battleship = Battleship::new(
+///     place::random,
+///     place::random,
+/// 
+///     shoot::random,
+///     shoot::random
+/// );
+/// 
+/// let (p1_wins, p2_wins) = battleship.play_games(1_000);
+/// 
+/// // This is true because the starting player has a small advantage
+/// assert!(p1_wins > p2_wins);
+/// ```
+pub fn random(_: Pos, shots: ShotMap) -> Pos {
     random_find(shots)
 }
 
-pub fn random_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
+/// Shoots completely randomly until a ship is hit, then focuses on it
+/// 
+/// Shoot spaces that aren't shot randomly.
+/// Until it hits a ship, then shoot around it to find the rest.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::{shoot, place};
+/// 
+/// let mut battleship = Battleship::new(
+///     place::random,
+///     place::random,
+/// 
+///     shoot::random,
+///     shoot::random_and_random_destroy
+/// );
+/// 
+/// let (p1_wins, p2_wins) = battleship.play_games(1_000);
+/// 
+/// assert!(p2_wins > p1_wins);
+/// ```
+pub fn random_and_random_destroy(_: Pos, shots: ShotMap) -> Pos {
     if let Some(pos) = random_destroy(shots) {
         pos
     } else {
@@ -42,18 +90,37 @@ pub fn random_and_random_destroy(_player: Player, shots: ShotMap) -> Pos {
     }
 }
 
-pub fn random_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+/// Shoots completely randomly until a ship is hit, then destroys it smarter than random_and_random_destroy
+/// 
+/// Shoot spaces that aren't shot randomly.
+/// Until it hits a ship, then shoot around it to find the rest.
+/// But also account for the fact that ships are a line, so don't shoot spaces to the sides.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::{shoot, place};
+/// 
+/// let mut battleship = Battleship::new(
+///     place::random,
+///     place::random,
+/// 
+///     shoot::random_and_random_destroy,
+///     shoot::random_and_destroy
+/// );
+/// 
+/// let (p1_wins, p2_wins) = battleship.play_games(1_000);
+/// 
+/// assert!(p2_wins > p1_wins);
+/// ```
+pub fn random_and_destroy(_: Pos, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
         random_find(shots)
     }
 }
-
-lazy_static!(
-    static ref LAST_POS_P1: RwLock<Pos> = RwLock::new(Pos::new(0, 0));
-    static ref LAST_POS_P2: RwLock<Pos> = RwLock::new(Pos::new(0, 0));
-);
 
 fn grid_find(shots: ShotMap, last_pos: Pos) -> Pos {
     if shots[0][0].is_none() {
@@ -106,19 +173,33 @@ fn grid_find(shots: ShotMap, last_pos: Pos) -> Pos {
     position
 }
 
-pub fn grid_and_destroy(player: Player, shots: ShotMap) -> Pos {
+/// Shoots in a grid until it finds a ship and destroy it
+/// 
+/// Shoot in a grid pattern until it finds a ship, then destroy it.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::{shoot, place};
+/// 
+/// let mut battleship = Battleship::new(
+///     place::random,
+///     place::random,
+/// 
+///     shoot::random_and_destroy,
+///     shoot::grid_and_destroy
+/// );
+/// 
+/// let (p1_wins, p2_wins) = battleship.play_games(1_000);
+/// 
+/// assert!(p2_wins > p1_wins);
+/// ```
+pub fn grid_and_destroy(last_pos: Pos, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
-        let mut pos_lock = match player {
-            Player::P1 => LAST_POS_P1.write().expect("Failed to write Grid state"),
-            Player::P2 => LAST_POS_P2.write().expect("Failed to write Grid state")
-        };
-
-        let result = grid_find(shots, pos_lock.to_owned());
-        *pos_lock = result;
-
-        result
+        grid_find(shots, last_pos)
     }
 }
 
@@ -203,7 +284,29 @@ fn heatmap_find(shots: ShotMap) -> Pos {
     pos
 }
 
-pub fn heatmap_and_destroy(_player: Player, shots: ShotMap) -> Pos {
+/// Creates a heatmap for the boats and shoots the highest heat
+/// 
+/// Creates a heatmap using all possible positions the boats can be in, then shoots one of the highest ones.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use battleship_bot::Battleship;
+/// use battleship_bot::{shoot, place};
+/// 
+/// let mut battleship = Battleship::new(
+///     place::random,
+///     place::random,
+/// 
+///     shoot::grid_and_destroy,
+///     shoot::heatmap_and_destroy
+/// );
+/// 
+/// let (p1_wins, p2_wins) = battleship.play_games(1_000);
+/// 
+/// assert!(p2_wins > p1_wins);
+/// ```
+pub fn heatmap_and_destroy(_: Pos, shots: ShotMap) -> Pos {
     if let Some(pos) = destroy(shots) {
         pos
     } else {
@@ -233,7 +336,7 @@ mod tests {
         ];
 
         for _ in 0..100 {
-            let shot = random_and_random_destroy(Player::P1, shots);
+            let shot = random_and_random_destroy(pos!(0, 0), shots);
 
             assert!(possible.contains(&shot));
         }
@@ -252,7 +355,7 @@ mod tests {
         ];
 
         for _ in 0..100 {
-            let shot = random_and_destroy(Player::P1, shots);
+            let shot = random_and_destroy(pos!(0, 0), shots);
 
             assert!(possible.contains(&shot));
         }
@@ -262,27 +365,27 @@ mod tests {
     fn test_grid_and_destroy() {
         let mut shots = [[None; NUM_ROWS]; NUM_COLS];
 
-        assert!(grid_and_destroy(Player::P1, shots) == pos!(0, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(0, 0));
 
         shots[0][0]= Some(Shot::Hit(Boat::Destroyer));
 
-        let shot = grid_and_destroy(Player::P1, shots);
+        let shot = grid_and_destroy(pos!(0, 0), shots);
         shots[shot.x][shot.y] = Some(Shot::Hit(Boat::Destroyer));
 
-        assert!(grid_and_destroy(Player::P1, shots) == pos!(3, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(3, 0));
     }
 
     #[test]
     fn test_grid_and_destroy2() {
         let mut shots = [[None; NUM_ROWS]; NUM_COLS];
 
-        assert!(grid_and_destroy(Player::P2, shots) == pos!(0, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(0, 0));
         shots[0][0] = Some(Shot::Miss);
 
-        assert!(grid_and_destroy(Player::P2, shots) == pos!(2, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(2, 0));
         shots[2][0] = Some(Shot::Miss);
 
-        assert!(grid_and_destroy(Player::P2, shots) == pos!(4, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(4, 0));
     }
 
     #[test]
@@ -324,9 +427,9 @@ mod tests {
             pos!(5, 5),
         ];
 
-        assert!(possible.contains(&heatmap_and_destroy(Player::P1, shots)));
+        assert!(possible.contains(&heatmap_and_destroy(pos!(0, 0), shots)));
 
         shots[4][4] = Some(Shot::Miss);
-        assert!(heatmap_and_destroy(Player::P1, shots) == pos!(5, 5));
+        assert!(heatmap_and_destroy(pos!(0, 0), shots) == pos!(5, 5));
     }
 }

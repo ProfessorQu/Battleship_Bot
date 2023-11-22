@@ -1,3 +1,8 @@
+//! This is the module for all the place functions
+//! 
+//! This module contains all the functions to place boats,
+//! It's important that they're functions because otherwise `Battleship::reset` wouldn't work.
+
 use rand::Rng;
 
 use crate::pos;
@@ -91,20 +96,20 @@ fn place_boat(boats: &mut BoatMap, boat: Boat, horizontal: bool, pos: Pos) {
 /// 
 /// ```rust
 /// use battleship_bot::Battleship;
-/// use battleship_bot::players;
+/// use battleship_bot::{shoot, place};
 /// 
 /// let mut battleship = Battleship::new(
-///     players::place::random,
-///     players::place::random,
+///     place::random,
+///     place::random,
 /// 
-///     players::shoot::random,
-///     players::shoot::random
+///     shoot::random,
+///     shoot::random
 /// );
 /// 
 /// let recording = battleship.play_and_record_game();
 /// 
 /// println!("{} won!", recording.winner);
-/// ````
+/// ```
 pub fn random() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
@@ -145,20 +150,20 @@ fn side_boat_pos(boat: Boat) -> (bool, Pos) {
 /// 
 /// ```rust
 /// use battleship_bot::Battleship;
-/// use battleship_bot::players;
+/// use battleship_bot::{shoot, place};
 /// 
 /// let mut battleship = Battleship::new(
-///     players::place::sides,
-///     players::place::sides,
+///     place::sides,
+///     place::sides,
 /// 
-///     players::shoot::random,
-///     players::shoot::random
+///     shoot::random,
+///     shoot::random
 /// );
 /// 
 /// let recording = battleship.play_and_record_game();
 /// 
 /// println!("{} won!", recording.winner);
-/// ````
+/// ```
 pub fn sides() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
@@ -224,20 +229,20 @@ fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
 /// 
 /// ```rust
 /// use battleship_bot::Battleship;
-/// use battleship_bot::players;
+/// use battleship_bot::{shoot, place};
 /// 
 /// let mut battleship = Battleship::new(
-///     players::place::spread,
-///     players::place::spread,
+///     place::spread,
+///     place::spread,
 /// 
-///     players::shoot::random,
-///     players::shoot::random
+///     shoot::random,
+///     shoot::random
 /// );
 /// 
 /// let recording = battleship.play_and_record_game();
 /// 
 /// println!("{} won!", recording.winner);
-/// ````
+/// ```
 pub fn spread() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
@@ -284,20 +289,20 @@ fn cluster_boat_pos(boat: Boat) -> (bool, Pos) {
 /// 
 /// ```rust
 /// use battleship_bot::Battleship;
-/// use battleship_bot::players;
+/// use battleship_bot::{shoot, place};
 /// 
 /// let mut battleship = Battleship::new(
-///     players::place::cluster,
-///     players::place::cluster,
+///     place::cluster,
+///     place::cluster,
 /// 
-///     players::shoot::random,
-///     players::shoot::random
+///     shoot::random,
+///     shoot::random
 /// );
 /// 
 /// let recording = battleship.play_and_record_game();
 /// 
 /// println!("{} won!", recording.winner);
-/// ````
+/// ```
 pub fn cluster() -> BoatMap {
     let mut boats = [[Boat::Empty; NUM_ROWS]; NUM_COLS];
 
