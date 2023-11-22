@@ -41,6 +41,7 @@ fn random_offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Po
             .choose(&mut rand::thread_rng())
             .copied().expect("No hits")
     };
+
     let mut positions = vec![];
 
     let (x, y) = (pos.x as i32, pos.y as i32);

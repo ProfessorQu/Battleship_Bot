@@ -55,7 +55,7 @@ lazy_static!(
     static ref LAST_POS_P2: RwLock<Pos> = RwLock::new(Pos::new(0, 0));
 );
 
-fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
+fn grid_find(shots: ShotMap, last_pos: Pos) -> Pos {
     if shots[0][0].is_none() {
         return pos!(0, 0)
     }
@@ -76,7 +76,7 @@ fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
         }
     }
 
-    let mut position = last_pos.to_owned();
+    let mut position = last_pos;
 
     let mut has_reset = false;
     while !valid_shot(shots, position) {
@@ -103,8 +103,6 @@ fn grid_find(shots: ShotMap, last_pos: &mut Pos) -> Pos {
         }
     }
 
-    *last_pos = position;
-
     position
 }
 
@@ -117,11 +115,8 @@ pub fn grid_and_destroy(player: Player, shots: ShotMap) -> Pos {
             Player::P2 => LAST_POS_P2.write().expect("Failed to write Grid state")
         };
 
-        let mut last_pos = pos_lock.to_owned();
-
-        let result = grid_find(shots, &mut last_pos);
-
-        *pos_lock = last_pos;
+        let result = grid_find(shots, pos_lock.to_owned());
+        *pos_lock = result;
 
         result
     }
@@ -132,7 +127,7 @@ fn update_heatmap(heatmap: &mut [[usize; NUM_ROWS]; NUM_COLS], shots: ShotMap, b
 
     if horizontal {
         for x_off in 0..boat.length() {
-            if  shots[pos.x + x_off][pos.y].is_some() {
+            if shots[pos.x + x_off][pos.y].is_some() {
                 overlaps = true;
                 break;
             }
@@ -165,14 +160,14 @@ fn create_heatmap(shots: ShotMap) -> [[usize; NUM_ROWS]; NUM_COLS] {
     let mut heatmap = [[0; NUM_ROWS]; NUM_COLS];
 
     for boat in BOATS {
-        for x in 0..NUM_COLS - boat.length() {
+        for x in 0..=NUM_COLS - boat.length() {
             for y in 0..NUM_ROWS {
                 update_heatmap(&mut heatmap, shots, boat, true, pos!(x, y));
             }
         }
 
         for x in 0..NUM_COLS {
-            for y in 0..NUM_ROWS - boat.length() {
+            for y in 0..=NUM_ROWS - boat.length() {
                 update_heatmap(&mut heatmap, shots, boat, false, pos!(x, y));
             }
         }
@@ -213,5 +208,125 @@ pub fn heatmap_and_destroy(_player: Player, shots: ShotMap) -> Pos {
         pos
     } else {
         heatmap_find(shots)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::battleship::game::Shot;
+    use super::*;
+
+    #[test]
+    fn test_random_and_random_destroy() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        shots[1][1] = Some(Shot::Hit(Boat::Cruiser));
+        shots[1][2] = Some(Shot::Hit(Boat::Cruiser));
+        
+        let possible = [
+            pos!(1, 0),
+            pos!(1, 3),
+            pos!(0, 1),
+            pos!(0, 2),
+            pos!(2, 1),
+            pos!(2, 2)
+        ];
+
+        for _ in 0..100 {
+            let shot = random_and_random_destroy(Player::P1, shots);
+
+            assert!(possible.contains(&shot));
+        }
+    }
+
+    #[test]
+    fn test_random_and_destroy() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        shots[1][1] = Some(Shot::Hit(Boat::Cruiser));
+        shots[1][2] = Some(Shot::Hit(Boat::Cruiser));
+        
+        let possible = [
+            pos!(1, 0),
+            pos!(1, 3),
+        ];
+
+        for _ in 0..100 {
+            let shot = random_and_destroy(Player::P1, shots);
+
+            assert!(possible.contains(&shot));
+        }
+    }
+
+    #[test]
+    fn test_grid_and_destroy() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        assert!(grid_and_destroy(Player::P1, shots) == pos!(0, 0));
+
+        shots[0][0]= Some(Shot::Hit(Boat::Destroyer));
+
+        let shot = grid_and_destroy(Player::P1, shots);
+        shots[shot.x][shot.y] = Some(Shot::Hit(Boat::Destroyer));
+
+        assert!(grid_and_destroy(Player::P1, shots) == pos!(3, 0));
+    }
+
+    #[test]
+    fn test_grid_and_destroy2() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        assert!(grid_and_destroy(Player::P2, shots) == pos!(0, 0));
+        shots[0][0] = Some(Shot::Miss);
+
+        assert!(grid_and_destroy(Player::P2, shots) == pos!(2, 0));
+        shots[2][0] = Some(Shot::Miss);
+
+        assert!(grid_and_destroy(Player::P2, shots) == pos!(4, 0));
+    }
+
+    #[test]
+    fn test_create_heatmap() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        let heatmap = create_heatmap(shots);
+
+        assert!(heatmap[0][0] == 10);
+        assert!(heatmap[0][NUM_ROWS - 1] == 10);
+        assert!(heatmap[NUM_COLS - 1][0] == 10);
+        assert!(heatmap[NUM_COLS - 1][NUM_ROWS - 1] == 10);
+
+        for col in heatmap.iter().take(NUM_COLS - 1).skip(1) {
+            for heat in col.iter() {
+                assert!(*heat > 10);
+            }
+        }
+
+        assert!(heatmap[0][1] == heatmap[1][0]);
+
+        shots[0][0] = Some(Shot::Miss);
+        let heatmap = create_heatmap(shots);
+        assert!(heatmap[0][1] == 10);
+
+        shots[0][2] = Some(Shot::Miss);
+        let heatmap = create_heatmap(shots);
+        assert!(heatmap[0][1] == 5);
+    }
+
+    #[test]
+    fn test_heatmap_and_destroy() {
+        let mut shots = [[None; NUM_ROWS]; NUM_COLS];
+
+        let possible = [
+            pos!(4, 4),
+            pos!(4, 5),
+            pos!(5, 4),
+            pos!(5, 5),
+        ];
+
+        assert!(possible.contains(&heatmap_and_destroy(Player::P1, shots)));
+
+        shots[4][4] = Some(Shot::Miss);
+        assert!(heatmap_and_destroy(Player::P1, shots) == pos!(5, 5));
     }
 }

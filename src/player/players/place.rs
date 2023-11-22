@@ -32,6 +32,16 @@ fn overlaps(
     overlaps
 }
 
+fn valid_boat_pos(boats: &BoatMap, boat: Boat, get_boat_pos: fn(Boat) -> (bool, Pos)) -> (bool, Pos) {
+    let mut boat_pos = get_boat_pos(boat);
+
+    while overlaps(boats, boat, boat_pos.0, boat_pos.1) {
+        boat_pos = get_boat_pos(boat);
+    }
+
+    boat_pos
+}
+
 fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     let horizontal: bool = rand::random();
 
@@ -176,7 +186,6 @@ fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
         Boat::Battleship => (NUM_COLS / 2, NUM_COLS),
         _ => unreachable!()
     };
-    println!("boat: {}, x_min: {:?}", boat, x_min);
 
     if horizontal {
         x_max -= boat.length();
@@ -200,16 +209,6 @@ fn spread_boat_pos(boat: Boat) -> (bool, Pos) {
     );
 
     (horizontal, pos!(x, y))
-}
-
-fn valid_boat_pos(boats: &BoatMap, boat: Boat, get_boat_pos: fn(Boat) -> (bool, Pos)) -> (bool, Pos) {
-    let mut boat_pos = get_boat_pos(boat);
-
-    while overlaps(boats, boat, boat_pos.0, boat_pos.1) {
-        boat_pos = get_boat_pos(boat);
-    }
-
-    boat_pos
 }
 
 /// Place boats spread out
@@ -256,13 +255,13 @@ fn cluster_boat_pos(boat: Boat) -> (bool, Pos) {
 
     let (x_range, y_range) = if horizontal {
         (
-            NUM_COLS / 4 - 1..((NUM_COLS * 3) / 4 - length),
-            NUM_ROWS / 4 - 1..NUM_ROWS * 3 / 4
+            NUM_COLS / 4..NUM_COLS * 3 / 4 + 1 - length,
+            NUM_ROWS / 4..NUM_ROWS * 3 / 4 + 1
         )
     } else {
         (
-            NUM_COLS / 4 - 1..NUM_COLS * 3 / 4,
-            NUM_ROWS / 4 - 1..((NUM_ROWS * 3) / 4 - length)
+            NUM_COLS / 4..NUM_COLS * 3 / 4 + 1,
+            NUM_ROWS / 4..NUM_ROWS * 3 / 4 + 1 - length
         )
     };
 
@@ -322,6 +321,32 @@ mod tests {
         boats
     }
 
+    fn is_horizontal(boats: &BoatMap, x: usize, y: usize) -> bool {
+        let boat = boats[x][y];
+        let mut horizontal = false;
+        if x > 0 {
+            horizontal = boats[x - 1][y] == boat;
+        }
+        if x < NUM_COLS - 1 {
+            horizontal = horizontal || boats[x + 1][y] == boat;
+        }
+
+        horizontal
+    }
+
+    fn is_vertical(boats: &BoatMap, x: usize, y: usize) -> bool {
+        let boat = boats[x][y];
+        let mut vertical = false;
+        if y > 0 {
+            vertical = boats[x][y - 1] == boat;
+        }
+        if y < NUM_ROWS - 1 {
+            vertical = vertical || boats[x][y + 1] == boat;
+        }
+
+        vertical
+    }
+
     #[test]
     fn test_overlaps_horizontal() {
         let boats = one_boat(Boat::Destroyer, pos!(1, 0), false);
@@ -368,46 +393,17 @@ mod tests {
         }
     }
 
-    fn is_horizontal(boats: &BoatMap, x: usize, y: usize) -> bool {
-        let boat = boats[x][y];
-        let mut horizontal = false;
-        if x > 0 {
-            horizontal = boats[x - 1][y] == boat;
-        }
-        if x < NUM_COLS - 1 {
-            horizontal = horizontal || boats[x + 1][y] == boat;
-        }
-
-        horizontal
-    }
-
-    fn is_vertical(boats: &BoatMap, x: usize, y: usize) -> bool {
-        let boat = boats[x][y];
-        let mut vertical = false;
-        if y > 0 {
-            vertical = boats[x][y - 1] == boat;
-        }
-        if y < NUM_ROWS - 1 {
-            vertical = vertical || boats[x][y + 1] == boat;
-        }
-
-        vertical
-    }
-
-    #[test]
     fn test_sides() {
-        for _ in 0..100 {
-            let boats = sides();
+        let boats = sides();
 
-            for x in 0..NUM_COLS {
-                for y in 0..NUM_ROWS {
-                    if boats[x][y] != Boat::Empty {
-                        if (2..=7).contains(&x) {
-                            assert!(is_horizontal(&boats, x, y));
-                        }
-                        if (2..=7).contains(&y) {
-                            assert!(is_vertical(&boats, x, y));
-                        }
+        for x in 0..NUM_COLS {
+            for y in 0..NUM_ROWS {
+                if boats[x][y] != Boat::Empty {
+                    if (2..=7).contains(&x) {
+                        assert!(is_horizontal(&boats, x, y));
+                    }
+                    if (2..=7).contains(&y) {
+                        assert!(is_vertical(&boats, x, y));
                     }
                 }
             }
@@ -415,33 +411,64 @@ mod tests {
     }
 
     #[test]
-    fn test_spread() {
+    fn test_sides_100() {
         for _ in 0..100 {
-            let boats = spread();
+            test_sides();
+        }
+    }
 
-            for (x, row) in boats.iter().enumerate() {
-                for (y, boat) in row.iter().enumerate() {
-                    match boat {
-                        Boat::Destroyer => {
-                            assert!(x <= 5);
-                            assert!(y <= 5);
-                        }
-                        Boat::Submarine => {
-                            assert!(x >= 6);
-                            assert!(y <= 5);
-                        }
-                        Boat::Cruiser => {
-                            assert!(x <= 5);
-                            assert!(y >= 6);
-                        }
-                        Boat::Battleship => {
-                            assert!(x >= 5);
-                            assert!(y >= 5);
-                        }
-                        _ => ()
+    fn test_spread() {
+        let boats = spread();
+
+        for (x, row) in boats.iter().enumerate() {
+            for (y, boat) in row.iter().enumerate() {
+                match boat {
+                    Boat::Destroyer => {
+                        assert!(x <= 5);
+                        assert!(y <= 5);
                     }
+                    Boat::Submarine => {
+                        assert!(x >= 6);
+                        assert!(y <= 5);
+                    }
+                    Boat::Cruiser => {
+                        assert!(x <= 5);
+                        assert!(y >= 6);
+                    }
+                    Boat::Battleship => {
+                        assert!(x >= 5);
+                        assert!(y >= 5);
+                    }
+                    _ => ()
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_spread_100() {
+        for _ in 0..100 {
+            test_spread();
+        }
+    }
+
+    fn test_cluster() {
+        let boats = cluster();
+
+        for (x, row) in boats.iter().enumerate() {
+            for (y, boat) in row.iter().enumerate() {
+                if *boat != Boat::Empty {
+                    assert!((2..=7).contains(&x));
+                    assert!((2..=7).contains(&y));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_cluster_100() {
+        for _ in 0..100 {
+            test_cluster();
         }
     }
 }
