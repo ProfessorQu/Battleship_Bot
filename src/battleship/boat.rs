@@ -1,7 +1,10 @@
-use std::fmt::{Display, Debug};
+use std::fmt::Debug;
 
 const LENGTHS: [usize; 5] = [2, 3, 3, 4, 5];
 
+/// Stores the type of Boat that is on a cell
+/// 
+/// Can either be `Empty` or one of the 5 boats in standard Battleship.
 #[derive(Clone, Copy, PartialEq)]
 pub enum Boat {
     Empty,
@@ -13,12 +16,6 @@ pub enum Boat {
 }
 
 impl Debug for Boat {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", *self as usize)
-    }
-}
-
-impl Display for Boat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", *self as usize)
     }

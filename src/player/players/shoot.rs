@@ -1,4 +1,4 @@
-//! This is the module for all the shoot functions
+//! All the shoot functions
 //! 
 //! This module contains all the functions to shoot at the boats.
 //! All functions take a 2d vector to see what shots have been taken and return a new position to fire.
@@ -262,8 +262,8 @@ fn heatmap_find(shots: ShotMap) -> Pos {
 
     let max = heatmap
         .iter().map(
-            |row| row.iter().max().expect("No maximum in row")
-        ).max().expect("No maximum in heatmap");
+            |row| row.iter().max().expect("No items in row")
+        ).max().expect("No items in heatmap");
 
     let mut possible_positions = vec![];
 
@@ -275,10 +275,14 @@ fn heatmap_find(shots: ShotMap) -> Pos {
         }
     }
 
-    let mut pos = *possible_positions.choose(&mut rand::thread_rng()).expect("Failed to choose random");
+    let mut pos = *possible_positions
+        .choose(&mut rand::thread_rng())
+        .expect("Failed to choose random position");
 
     while !valid_shot(shots, pos) {
-        pos = *possible_positions.choose(&mut rand::thread_rng()).expect("Failed to choose random");
+        pos = *possible_positions
+            .choose(&mut rand::thread_rng())
+            .expect("Failed to choose random position");
     }
 
     pos
@@ -316,7 +320,7 @@ pub fn heatmap_and_destroy(_: Pos, shots: ShotMap) -> Pos {
 
 #[cfg(test)]
 mod tests {
-    use crate::battleship::game::Shot;
+    use crate::battleship::shot::Shot;
     use super::*;
 
     #[test]

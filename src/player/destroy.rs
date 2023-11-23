@@ -29,17 +29,17 @@ fn add_valid_position_with_offset(positions: &mut Vec<Pos>, shots: ShotMap, x: i
 
 fn random_offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Pos> {
     let pos = if boat_hits_vec.len() == 1 {
-        boat_hits_vec.first().copied().expect("No hits")
+        boat_hits_vec.first().copied().expect("No hits in boat_hits_vec")
     }
     else {
         let min_pos = boat_hits_vec
-            .first().copied().expect("No hits");
+            .first().copied().expect("No hits in boat_hits_vec");
         let max_pos = boat_hits_vec
-            .last().copied().expect("No hits");
+            .last().copied().expect("No hits in boat_hits_vec");
 
         [min_pos, max_pos]
             .choose(&mut rand::thread_rng())
-            .copied().expect("No hits")
+            .copied().expect("No hits in boat_hits_vec")
     };
 
     let mut positions = vec![];
@@ -55,9 +55,9 @@ fn random_offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Po
 
 fn offset_shoot_pos(shots: ShotMap, boat_hits_vec: Vec<Pos>) -> Option<Pos> {
     let min_pos = boat_hits_vec
-        .first().copied().expect("No boats");
+        .first().copied().expect("No boats in boat_hits_vec");
     let max_pos = boat_hits_vec
-        .last().copied().expect("No boats");
+        .last().copied().expect("No boats in boat_hits_vec");
 
     let horizontal = max_pos.x - min_pos.x != 0;
 

@@ -1,7 +1,7 @@
-//! This is the module for all the place functions
+//! All the place functions
 //! 
 //! This module contains all the functions to place boats,
-//! It's important that they're functions because otherwise `Battleship::reset` wouldn't work.
+//! It's important that they're functions because otherwise playing multiple games wouldn't work.
 
 use rand::Rng;
 
