@@ -8,10 +8,6 @@ use crate::battleship::constants::{NUM_ROWS, NUM_COLS, OFFSETS, ShotMap};
 
 use super::utils::get_hits;
 
-pub fn valid_shot(shots: ShotMap, pos: Pos) -> bool  {
-    shots[pos.x][pos.y].is_none()
-}
-
 pub fn valid_shot_any(shots: ShotMap, x: i32, y: i32) -> bool {
     x >= 0 && x < NUM_COLS as i32 &&
     y >= 0 && y < NUM_ROWS as i32 &&

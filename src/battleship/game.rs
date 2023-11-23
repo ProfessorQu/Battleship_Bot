@@ -2,8 +2,8 @@ use std::fmt::Display;
 use std::{fmt::Debug, fs::File};
 use std::io::Write;
 
-use crate::player::destroy::valid_shot;
 use crate::pos;
+use crate::shoot::valid_shot;
 
 use super::boat::{Boat, BOATS};
 use super::constants::{NUM_ROWS, NUM_COLS, ShotMap, BoatMap, ShootFn, PlaceFn};
@@ -95,16 +95,42 @@ pub struct Battleship {
 }
 
 impl Battleship {
+    fn boats_valid(boats: BoatMap) -> bool {
+        for boat in BOATS {
+            let mut length = 0;
+            for row in boats {
+                for boat_item in row {
+                    if boat_item == boat {
+                        length += 1;
+                    }
+                }
+            }
+
+            if length < boat.length() {
+                return false
+            }
+        }
+
+        true
+    }
+
     /// This function is used to create the game.
     /// The parameters are basically what they are named.
     /// 
-    /// `player1_place_fn` and `player2_place_fn` can both be any function from [`place`](../battleship_bot/place/index.html).
+    /// `player1_place_fn` and `player2_place_fn` can both be any function from [`place`](crate::place).
     /// 
-    /// `player1_shoot_fn` and `player2_shoot_fn` can both be any function from [`shoot`](../battleship_bot/shoot/index.html).
+    /// `player1_shoot_fn` and `player2_shoot_fn` can both be any function from [`shoot`](crate::shoot).
     pub fn new(
         player1_place_fn: PlaceFn, player2_place_fn: PlaceFn,
         player1_shoot_fn: ShootFn, player2_shoot_fn: ShootFn,
     ) -> Self {
+        if !Battleship::boats_valid(player1_place_fn()) {
+            panic!("Player 1 boat function isn't valid")
+        }
+        if !Battleship::boats_valid(player2_place_fn()) {
+            panic!("Player 2 boat function isn't valid")
+        }
+
         Self {
             current_player: Player::P1,
             min_shots: BOATS.iter().map(|boat| boat.length()).sum(),

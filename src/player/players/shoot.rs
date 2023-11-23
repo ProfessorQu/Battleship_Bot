@@ -2,34 +2,73 @@
 //! 
 //! This module contains all the functions to shoot at the boats.
 //! All functions take a 2d vector to see what shots have been taken and return a new position to fire.
-
-use rand::Rng;
+//! If you want to implement your own place function, it has to take a [`ShotMap`] and a [`Pos`] and return a [`Pos`].
+//! 
+//! # Example
+//! ```rust
+//! use battleship_bot::*;
+//! use rand::random;
+//! 
+//! fn shoot(_last_pos: Pos, shots: ShotMap) -> Pos {
+//!     let mut shot = random();
+//!     while !valid_shot(shots, shot) {
+//!         shot = random();
+//!     }
+//! 
+//!     shot
+//! }
+//! 
+//! let mut game = Battleship::new(
+//!     place::random,
+//!     place::random,
+//! 
+//!     shoot,
+//!     shoot::random
+//! );
+//! 
+//! println!("{} won", game.play_and_record_game().winner);
+//! ```
 
 use rand::seq::SliceRandom;
 
 use crate::battleship::position::Pos;
-use crate::player::destroy::{valid_shot, random_destroy, destroy};
+use crate::player::destroy::{random_destroy, destroy};
 use crate::player::utils::get_hits;
 use crate::pos;
 use crate::battleship::boat::{BOATS, Boat};
 use crate::battleship::constants::{NUM_COLS, NUM_ROWS, ShotMap};
 
+/// Check if pos is a valid position for a shot in shots
+/// 
+/// Checks if pos is in range of the board and the position isn't shot yet.
+/// 
+/// # Example
+/// ```rust
+/// use battleship_bot::*;
+/// 
+/// let mut shots = [[None; 10]; 10];
+/// 
+/// assert!(valid_shot(shots, pos!(0, 0)));
+/// assert!(!valid_shot(shots, pos!(10, 0)));
+/// assert!(!valid_shot(shots, pos!(10, 10)));
+/// 
+/// shots[3][5] = Some(Shot::Miss);
+/// assert!(!valid_shot(shots, pos!(3, 5)));
+/// ```
+pub fn valid_shot(shots: ShotMap, pos: Pos) -> bool  {
+    pos.x < NUM_COLS &&
+    pos.y < NUM_ROWS &&
+    shots[pos.x][pos.y].is_none()
+}
+
 fn random_find(shots: ShotMap) -> Pos {
-    let mut rng = rand::thread_rng();
+    let mut shot = rand::random();
 
-    let (mut x, mut y) = (
-        rng.gen_range(0..NUM_COLS),
-        rng.gen_range(0..NUM_ROWS),
-    );
-
-    while !valid_shot(shots, pos!(x, y)) {
-        (x, y) = (
-            rng.gen_range(0..NUM_COLS),
-            rng.gen_range(0..NUM_ROWS),
-        );
+    while !valid_shot(shots, shot) {
+        shot = rand::random();
     }
 
-    pos!(x, y)
+    shot
 }
 
 /// Shoots completely randomly
@@ -320,8 +359,41 @@ pub fn heatmap_and_destroy(_: Pos, shots: ShotMap) -> Pos {
 
 #[cfg(test)]
 mod tests {
-    use crate::battleship::shot::Shot;
+    use rand::Rng;
+
+    use crate::Shot;
+
     use super::*;
+
+    #[test]
+    fn test_valid_shot() {
+        let mut shots = [[None; 10]; 10];
+
+        for x in 0..10 {
+            for y in 0..10 {
+                assert!(valid_shot(shots, pos!(x, y)));
+            }
+        }
+
+        assert!(!valid_shot(shots, pos!(10, 0)));
+        assert!(!valid_shot(shots, pos!(0, 10)));
+        assert!(!valid_shot(shots, pos!(10, 10)));
+
+        let mut rng = rand::thread_rng();
+
+        for _ in 0..100 {
+            let x = rng.gen_range(0..10);
+            let y = rng.gen_range(0..10);
+
+            if rand::random() {
+                shots[x][y] = Some(Shot::Miss);
+            } else {
+                shots[x][y] = Some(Shot::Hit(Boat::Destroyer));
+            }
+
+            assert!(!valid_shot(shots, pos!(x, y)));
+        }
+    }
 
     #[test]
     fn test_random_and_random_destroy() {

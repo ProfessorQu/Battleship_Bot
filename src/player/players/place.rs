@@ -2,6 +2,34 @@
 //! 
 //! This module contains all the functions to place boats,
 //! It's important that they're functions because otherwise playing multiple games wouldn't work.
+//! If you want to implement your own place function, it has to return a [`BoatMap`]
+//! 
+//! # Example
+//! ```rust
+//! use battleship_bot::*;
+//! 
+//! fn place() -> BoatMap {
+//!     let mut boats = [[Boat::Empty; 10]; 10];
+//! 
+//!     place_boat(&mut boats, Boat::Destroyer, true, pos!(0, 0));
+//!     place_boat(&mut boats, Boat::Submarine, true, pos!(0, 1));
+//!     place_boat(&mut boats, Boat::Cruiser, true, pos!(0, 2));
+//!     place_boat(&mut boats, Boat::Battleship, true, pos!(0, 3));
+//!     place_boat(&mut boats, Boat::Carrier, true, pos!(0, 4));
+//! 
+//!     boats
+//! }
+//! 
+//! let mut game = Battleship::new(
+//!     place,
+//!     place::random,
+//! 
+//!     shoot::random,
+//!     shoot::random
+//! );
+//! 
+//! println!("{} won", game.play_and_record_game().winner);
+//! ```
 
 use rand::Rng;
 
@@ -73,7 +101,29 @@ fn random_boat_pos(boat: Boat) -> (bool, Pos) {
     )
 }
 
-fn place_boat(boats: &mut BoatMap, boat: Boat, horizontal: bool, pos: Pos) {
+/// Places a boat in boats
+/// 
+/// Places a `boat` in `boats`, either horizontally or not at `pos`.
+/// 
+/// # Example
+/// ```rust
+/// use battleship_bot::*;
+/// 
+/// let mut boats = [[Boat::Empty; 10]; 10];
+/// 
+/// place_boat(&mut boats, Boat::Destroyer, true, pos!(0, 0));
+/// 
+/// assert!(boats[0][0] == Boat::Destroyer);
+/// assert!(boats[1][0] == Boat::Destroyer);
+/// 
+/// let mut boats = [[Boat::Empty; 10]; 10];
+/// 
+/// place_boat(&mut boats, Boat::Destroyer, false, pos!(0, 0));
+/// 
+/// assert!(boats[0][0] == Boat::Destroyer);
+/// assert!(boats[0][1] == Boat::Destroyer);
+/// ```
+pub fn place_boat(boats: &mut BoatMap, boat: Boat, horizontal: bool, pos: Pos) {
     if horizontal {
         for x_off in 0..boat.length() {
             debug_assert!(boats[pos.x + x_off][pos.y].is_empty());
@@ -350,6 +400,18 @@ mod tests {
         }
 
         vertical
+    }
+
+    #[test]
+    fn test_place_boat() {
+        let mut boats = [[Boat::Empty; 10]; 10];
+
+        place_boat(&mut boats, Boat::Battleship, true, pos!(4, 2));
+
+        assert!(boats[4][2] == Boat::Battleship);
+        assert!(boats[5][2] == Boat::Battleship);
+        assert!(boats[6][2] == Boat::Battleship);
+        assert!(boats[7][2] == Boat::Battleship);
     }
 
     #[test]
