@@ -11,5 +11,6 @@ pub use crate::shoot::valid_shot;
 pub use crate::battleship::constants::{BoatMap, ShotMap};
 
 pub use crate::battleship::position::Pos;
+pub use crate::battleship::game::Player;
 pub use crate::battleship::boat::Boat;
 pub use crate::battleship::shot::Shot;
