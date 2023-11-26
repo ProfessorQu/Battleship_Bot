@@ -74,6 +74,7 @@ impl Recording {
     }
 }
 
+#[derive(Clone)]
 /// Handles the games
 pub struct Battleship {
     current_player: Player,
