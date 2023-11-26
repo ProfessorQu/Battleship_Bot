@@ -6,7 +6,7 @@ use crate::Boat;
 /// 
 /// Can either be a `Miss` or a `Hit`.
 /// If it's a `Hit` it stores the [`Boat`] it hit
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Shot {
     Hit(Boat),
     Miss
