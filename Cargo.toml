@@ -1,6 +1,6 @@
 [package]
 name = "battleship_bot"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2021"
 license-file = "LICENSE"
 description = "The game of battleship and a few bot implementations"
