@@ -9,13 +9,13 @@
 //! use battleship_bot::*;
 //! use rand::random;
 //! 
-//! fn shoot(_last_pos: Pos, shots: ShotMap) -> Pos {
+//! fn shoot(_last_pos: Pos, shots: ShotMap) -> (Pos, bool) {
 //!     let mut shot = random();
 //!     while !valid_shot(shots, shot) {
 //!         shot = random();
 //!     }
 //! 
-//!     shot
+//!     (shot, false)
 //! }
 //! 
 //! let mut game = Battleship::new(
@@ -94,8 +94,11 @@ fn random_find(shots: ShotMap) -> Pos {
 /// // This is true because the starting player has a small advantage
 /// assert!(p1_wins > p2_wins);
 /// ```
-pub fn random(_: Pos, shots: ShotMap) -> Pos {
-    random_find(shots)
+pub fn random(_: Pos, shots: ShotMap) -> (Pos, bool) {
+    (
+        random_find(shots),
+        false
+    )
 }
 
 /// Shoots completely randomly until a ship is hit, then focuses on it
@@ -121,11 +124,11 @@ pub fn random(_: Pos, shots: ShotMap) -> Pos {
 /// 
 /// assert!(p2_wins > p1_wins);
 /// ```
-pub fn random_and_random_destroy(_: Pos, shots: ShotMap) -> Pos {
+pub fn random_and_random_destroy(_: Pos, shots: ShotMap) -> (Pos, bool) {
     if let Some(pos) = random_destroy(shots) {
-        pos
+        (pos, false)
     } else {
-        random_find(shots)
+        (random_find(shots), true)
     }
 }
 
@@ -153,11 +156,11 @@ pub fn random_and_random_destroy(_: Pos, shots: ShotMap) -> Pos {
 /// 
 /// assert!(p2_wins > p1_wins);
 /// ```
-pub fn random_and_destroy(_: Pos, shots: ShotMap) -> Pos {
+pub fn random_and_destroy(_: Pos, shots: ShotMap) -> (Pos, bool) {
     if let Some(pos) = destroy(shots) {
-        pos
+        (pos, false)
     } else {
-        random_find(shots)
+        (random_find(shots), true)
     }
 }
 
@@ -234,11 +237,11 @@ fn grid_find(shots: ShotMap, last_pos: Pos) -> Pos {
 /// 
 /// assert!(p2_wins > p1_wins);
 /// ```
-pub fn grid_and_destroy(last_pos: Pos, shots: ShotMap) -> Pos {
+pub fn grid_and_destroy(last_pos: Pos, shots: ShotMap) -> (Pos, bool) {
     if let Some(pos) = destroy(shots) {
-        pos
+        (pos, false)
     } else {
-        grid_find(shots, last_pos)
+        (grid_find(shots, last_pos), true)
     }
 }
 
@@ -349,11 +352,11 @@ fn heatmap_find(shots: ShotMap) -> Pos {
 /// 
 /// assert!(p2_wins > p1_wins);
 /// ```
-pub fn heatmap_and_destroy(_: Pos, shots: ShotMap) -> Pos {
+pub fn heatmap_and_destroy(_: Pos, shots: ShotMap) -> (Pos, bool) {
     if let Some(pos) = destroy(shots) {
-        pos
+        (pos, false)
     } else {
-        heatmap_find(shots)
+        (heatmap_find(shots), false)
     }
 }
 
@@ -412,7 +415,7 @@ mod tests {
         ];
 
         for _ in 0..100 {
-            let shot = random_and_random_destroy(pos!(0, 0), shots);
+            let shot = random_and_random_destroy(pos!(0, 0), shots).0;
 
             assert!(possible.contains(&shot));
         }
@@ -431,7 +434,7 @@ mod tests {
         ];
 
         for _ in 0..100 {
-            let shot = random_and_destroy(pos!(0, 0), shots);
+            let shot = random_and_destroy(pos!(0, 0), shots).0;
 
             assert!(possible.contains(&shot));
         }
@@ -441,27 +444,27 @@ mod tests {
     fn test_grid_and_destroy() {
         let mut shots = [[None; NUM_ROWS]; NUM_COLS];
 
-        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(0, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots).0 == pos!(0, 0));
 
         shots[0][0]= Some(Shot::Hit(Boat::Destroyer));
 
-        let shot = grid_and_destroy(pos!(0, 0), shots);
+        let (shot, _) = grid_and_destroy(pos!(0, 0), shots);
         shots[shot.x][shot.y] = Some(Shot::Hit(Boat::Destroyer));
 
-        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(3, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots).0 == pos!(3, 0));
     }
 
     #[test]
     fn test_grid_and_destroy2() {
         let mut shots = [[None; NUM_ROWS]; NUM_COLS];
 
-        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(0, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots).0 == pos!(0, 0));
         shots[0][0] = Some(Shot::Miss);
 
-        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(2, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots).0 == pos!(2, 0));
         shots[2][0] = Some(Shot::Miss);
 
-        assert!(grid_and_destroy(pos!(0, 0), shots) == pos!(4, 0));
+        assert!(grid_and_destroy(pos!(0, 0), shots).0 == pos!(4, 0));
     }
 
     #[test]
@@ -503,9 +506,9 @@ mod tests {
             pos!(5, 5),
         ];
 
-        assert!(possible.contains(&heatmap_and_destroy(pos!(0, 0), shots)));
+        assert!(possible.contains(&heatmap_and_destroy(pos!(0, 0), shots).0));
 
         shots[4][4] = Some(Shot::Miss);
-        assert!(heatmap_and_destroy(pos!(0, 0), shots) == pos!(5, 5));
+        assert!(heatmap_and_destroy(pos!(0, 0), shots).0 == pos!(5, 5));
     }
 }

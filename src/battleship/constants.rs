@@ -12,7 +12,7 @@ pub const OFFSETS: [(i32, i32); 4] = [
     (0, -1)
 ];
 
-pub type ShootFn = fn(Pos, ShotMap) -> Pos;
+pub type ShootFn = fn(Pos, ShotMap) -> (Pos, bool);
 pub type PlaceFn = fn() -> BoatMap;
 
 /// This is supposed to be returned by any `place` function.

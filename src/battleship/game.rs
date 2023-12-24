@@ -201,12 +201,15 @@ impl Battleship {
     }
 
     fn step(&mut self) {
-        let pos = (self.get_shoot_fn())
+        let (pos, new_last_pos) = (self.get_shoot_fn())
             (self.get_last_shot(), self.get_shots(None));
+
 
         debug_assert!(valid_shot(self.get_shots(None), pos));
 
-        self.set_last_shot(pos);
+        if new_last_pos {
+            self.set_last_shot(pos);
+        }
         self.shoot(pos);
 
         self.current_player = self.current_player.opponent();
